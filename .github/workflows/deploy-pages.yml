@@ -1,1 +1,31 @@
+name: Deploy Winprizez Web Pages
 
+# Manual trigger only - go to the Actions tab on GitHub and click
+# "Run workflow". Same pattern as the KavoPay deploy-pages.yml.
+# This only touches the Winprizez Cloudflare Pages project.
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Create Pages project if needed
+        uses: cloudflare/wrangler-action@v4
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4'
+          command: pages project create winprizez --production-branch=main
+          quiet: true
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: '4'
+          command: pages deploy hosting/assets --project-name=winprizez
