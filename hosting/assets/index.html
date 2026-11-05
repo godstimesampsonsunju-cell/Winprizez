@@ -1,1 +1,468 @@
-hosting/assets/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>Winprizez</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  html, body { margin: 0; background: #faf8ff; }
+  body { font-family: 'Plus Jakarta Sans', sans-serif; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+  .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+  .mono { font-family: 'Space Grotesk', sans-serif; }
+  ::-webkit-scrollbar { display: none; }
+  .clip-pointer { clip-path: polygon(50% 100%, 0% 0%, 100% 0%); }
+  @keyframes pointerTick { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(6deg); } }
+  .needle-ticking { animation: pointerTick 0.12s ease-in-out infinite; transform-origin: top center; }
+  @keyframes confettiFall { 0% { transform: translateY(-20px) rotate(0deg); opacity: 1; } 100% { transform: translateY(420px) rotate(480deg); opacity: 0; } }
+  .confetti-piece { position: absolute; animation: confettiFall 2.4s ease-out infinite; }
+  @keyframes modalSpring { 0% { opacity: 0; transform: scale(0.82) translateY(24px); } 60% { opacity: 1; transform: scale(1.03) translateY(-4px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+  .animate-modal-pop { animation: modalSpring 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+</style>
+</head>
+<body class="text-[#131b2e] flex flex-col min-h-screen antialiased select-none">
+
+<header class="fixed top-0 w-full z-40 pt-safe bg-white/95 backdrop-blur-md border-b border-[#eaedff]">
+  <div class="h-16 px-4 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white">
+        <span class="material-symbols-outlined text-xl">casino</span>
+      </div>
+      <span class="font-extrabold text-base tracking-tight uppercase" id="appTitle">Winprizez</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200/80">
+        <span class="material-symbols-outlined text-amber-500 text-base leading-none">account_balance_wallet</span>
+        <span class="mono text-xs font-bold" id="balance">0</span>
+      </div>
+      <div class="w-9 h-9 rounded-full bg-blue-50 ring-2 ring-blue-600/20 flex items-center justify-center text-blue-700 font-extrabold text-sm" id="avatar">G</div>
+    </div>
+  </div>
+</header>
+
+<main class="flex flex-col items-center flex-1 w-full max-w-md mx-auto pt-20 pb-28 px-4">
+
+  <section id="view-spin" class="w-full flex flex-col items-center">
+    <div class="relative w-full flex flex-col items-center justify-center pt-6 pb-2">
+      <div class="relative z-30 flex flex-col items-center drop-shadow-md -mb-3" id="needle">
+        <div class="w-5 h-6 bg-rose-500 clip-pointer"></div>
+        <div class="w-2.5 h-2.5 rounded-full bg-rose-600 -mt-1 ring-2 ring-white"></div>
+      </div>
+      <div class="relative w-[min(326px,88vw)] aspect-square rounded-full p-2 bg-white border border-slate-200 shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
+        <div class="w-full h-full rounded-full relative overflow-hidden" id="wheel" style="transform: rotate(0deg);">
+          <svg class="w-full h-full" viewBox="0 0 400 400" id="wheelSvg"></svg>
+          <div class="absolute inset-0 pointer-events-none" id="wheelLabels"></div>
+        </div>
+        <button class="absolute inset-0 m-auto w-24 h-24 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 text-white flex flex-col items-center justify-center p-2 z-30 transition-all duration-200 shadow-[0_6px_20px_rgba(37,99,235,0.38)] ring-4 ring-white disabled:opacity-80 disabled:cursor-not-allowed" id="spinBtn" disabled>
+          <span class="material-symbols-outlined text-2xl leading-none mb-0.5" id="spinIcon">cyclone</span>
+          <span class="mono text-xs font-black tracking-wider uppercase leading-tight" id="spinLabel">SPIN</span>
+          <span class="mono text-[9px] text-blue-100 font-medium leading-none mt-0.5" id="spinSub"></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="w-full flex flex-col items-center gap-3 mt-4">
+      <div class="flex items-center justify-between p-1 bg-white border border-slate-200 rounded-full w-full max-w-xs">
+        <span class="text-xs font-bold text-slate-400 pl-3 uppercase tracking-wider">Boost</span>
+        <div class="flex items-center gap-1" id="boostBtns"></div>
+      </div>
+      <div class="w-full grid grid-cols-2 gap-2">
+        <div class="bg-white border border-slate-200/90 rounded-xl p-2.5 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-xl">payments</span>
+          </div>
+          <div class="min-w-0">
+            <div class="mono text-xs font-bold truncate" id="costCard">0</div>
+            <div class="text-[11px] text-slate-500">Cost per spin</div>
+          </div>
+        </div>
+        <div class="bg-white border border-slate-200/90 rounded-xl p-2.5 flex items-center gap-3">
+          <div class="w-9 h-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <span class="material-symbols-outlined text-xl">emoji_events</span>
+          </div>
+          <div class="min-w-0">
+            <div class="text-xs font-bold truncate" id="lastWin">No wins yet</div>
+            <div class="text-[11px] text-slate-500">Last win</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="view-prizes" class="hidden w-full">
+    <h2 class="text-lg font-extrabold mb-3">Prizes</h2>
+    <div class="flex flex-col gap-2" id="prizeList"></div>
+  </section>
+
+  <section id="view-winners" class="hidden w-full">
+    <h2 class="text-lg font-extrabold mb-3">Winners</h2>
+    <div class="flex flex-col gap-2" id="winnerList"></div>
+  </section>
+
+  <section id="view-wallet" class="hidden w-full">
+    <h2 class="text-lg font-extrabold mb-3">Wallet</h2>
+    <div class="bg-white border border-slate-200 rounded-2xl p-5">
+      <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Balance</div>
+      <div class="mono text-3xl font-extrabold mt-1" id="walletBalance">0</div>
+    </div>
+  </section>
+
+  <p class="hidden text-sm text-slate-500 text-center mt-10" id="loadError">We could not load the game. Please refresh the page.</p>
+</main>
+
+<div class="fixed left-1/2 -translate-x-1/2 bottom-24 z-[60] max-w-[88vw] px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold text-center transition-opacity duration-300 opacity-0 pointer-events-none" id="toast"></div>
+
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none" id="winBackdrop">
+  <div class="absolute inset-0 pointer-events-none overflow-hidden" id="confetti"></div>
+  <div class="relative w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center scale-90 transition-transform duration-300" id="winCard">
+    <button aria-label="Close" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-95" id="winClose">
+      <span class="material-symbols-outlined text-lg">close</span>
+    </button>
+    <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 text-white flex items-center justify-center shadow-lg shadow-amber-500/30 ring-4 ring-amber-100 mb-3 mt-1" id="winBadge">
+      <span class="material-symbols-outlined text-3xl" id="winBadgeIcon">trophy</span>
+    </div>
+    <h3 class="text-2xl font-black tracking-tight leading-tight mb-1" id="winTitle"></h3>
+    <p class="text-xs text-slate-500 mb-4" id="winSub"></p>
+    <div class="w-full bg-[#f8faff] border border-blue-100 rounded-2xl p-4 mb-5 flex items-center gap-3 text-left" id="winPrize">
+      <div class="w-14 h-14 rounded-xl bg-white border border-blue-100 flex items-center justify-center shrink-0">
+        <span class="material-symbols-outlined text-3xl" id="winIcon">redeem</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="text-[11px] uppercase tracking-wider font-bold text-blue-600" id="winKind"></div>
+        <div class="text-base font-extrabold truncate" id="winName"></div>
+        <div class="mono text-xs font-bold text-emerald-600 mt-0.5" id="winValue"></div>
+      </div>
+    </div>
+    <div class="w-full flex flex-col gap-2.5">
+      <button class="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-extrabold text-sm shadow-lg shadow-blue-600/30 transition" id="winDone">Done</button>
+      <button class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 font-bold text-xs transition flex items-center justify-center gap-1.5" id="winAgain">
+        <span class="material-symbols-outlined text-base text-slate-500">replay</span><span>Spin Again</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<nav class="fixed bottom-0 w-full z-40 pb-safe bg-white/95 backdrop-blur-md border-t border-slate-200/80">
+  <div class="h-16 max-w-md mx-auto px-6 flex items-center justify-around" id="nav">
+    <button class="nav-btn flex flex-col items-center justify-center py-1 px-3" data-view="spin"><span class="material-symbols-outlined text-2xl">casino</span><span class="text-[11px] font-semibold mt-0.5">Spin</span></button>
+    <button class="nav-btn flex flex-col items-center justify-center py-1 px-3" data-view="prizes"><span class="material-symbols-outlined text-2xl">featured_seasonal_and_gifts</span><span class="text-[11px] font-semibold mt-0.5">Prizes</span></button>
+    <button class="nav-btn flex flex-col items-center justify-center py-1 px-3" data-view="winners"><span class="material-symbols-outlined text-2xl">trophy</span><span class="text-[11px] font-semibold mt-0.5">Winners</span></button>
+    <button class="nav-btn flex flex-col items-center justify-center py-1 px-3" data-view="wallet"><span class="material-symbols-outlined text-2xl">account_balance_wallet</span><span class="text-[11px] font-semibold mt-0.5">Wallet</span></button>
+  </div>
+</nav>
+
+<script>
+(function () {
+  'use strict';
+
+  // Leave empty for demo mode (random result picked in the browser, for design preview only).
+  // When the backend is ready set to '/api'. The server must then decide every spin result.
+  var API = '';
+
+  // Shape of GET {API}/config. The admin panel edits this data.
+  // prize: { id, name, label?, icon, type: 'cash' | 'item' | 'none', amount?, value?, weight? }
+  var DEMO_CONFIG = {
+    title: 'Winprizez',
+    currency: '',
+    spinPrice: 100,
+    boosts: [1, 2, 5, 10],
+    user: { name: 'Guest', balance: 5000 },
+    prizes: [
+      { id: 'p1', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 1000, weight: 2 },
+      { id: 'p2', name: 'Smartphone', icon: 'smartphone', type: 'item', value: '', weight: 1 },
+      { id: 'p3', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 200, weight: 6 },
+      { id: 'p4', name: 'Try Again', label: 'Try Again', icon: 'refresh', type: 'none', weight: 8 },
+      { id: 'p5', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 500, weight: 4 },
+      { id: 'p6', name: 'Gift Box', icon: 'card_giftcard', type: 'item', value: '', weight: 2 },
+      { id: 'p7', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 100, weight: 8 },
+      { id: 'p8', name: 'Try Again', label: 'Try Again', icon: 'refresh', type: 'none', weight: 8 }
+    ]
+  };
+
+  var PALETTE = [
+    { bg: '#EEF2FF', fg: '#2563eb' }, { bg: '#FDF2F8', fg: '#db2777' },
+    { bg: '#ECFDF5', fg: '#059669' }, { bg: '#F0F9FF', fg: '#0284c7' },
+    { bg: '#F5F3FF', fg: '#7c3aed' }, { bg: '#FEF3C7', fg: '#d97706' },
+    { bg: '#E6FFFA', fg: '#0d9488' }, { bg: '#FFFBEB', fg: '#f59e0b' }
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+  var ico = function (s) { return /^[a-z0-9_]+$/.test(s || '') ? s : 'redeem'; };
+
+  var cfg = null, rotation = 0, spinning = false, boost = 1;
+
+  function fmt(n) {
+    var v = Number(n) || 0;
+    if (cfg && cfg.currency) {
+      try {
+        return new Intl.NumberFormat(undefined, { style: 'currency', currency: cfg.currency, minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(v);
+      } catch (e) { /* fall through to plain number */ }
+    }
+    return v.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  }
+
+  function labelOf(p) { return p.label || (p.type === 'cash' ? fmt(p.amount) : p.name); }
+  function valueOf(p) { return p.type === 'cash' ? fmt(p.amount) : (p.value || ''); }
+
+  var toastTimer;
+  function toast(msg) {
+    var t = $('toast');
+    t.textContent = msg;
+    t.classList.remove('opacity-0');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.add('opacity-0'); }, 3200);
+  }
+
+  function api(path, opts) {
+    opts = opts || {};
+    opts.credentials = 'include';
+    return fetch(API + path, opts).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) {
+        if (!r.ok) throw new Error(d.message || 'Something went wrong. Please try again.');
+        return d;
+      });
+    });
+  }
+
+  function renderBalance() {
+    var b = fmt(cfg.user.balance);
+    $('balance').textContent = b;
+    $('walletBalance').textContent = b;
+  }
+
+  function renderCost() {
+    var c = fmt(cfg.spinPrice * boost);
+    $('spinSub').textContent = c;
+    $('costCard').textContent = c;
+  }
+
+  function buildWheel() {
+    var n = cfg.prizes.length, step = 360 / n, svg = '', labels = '';
+    function pt(a) {
+      var r = a * Math.PI / 180;
+      return [(200 + 200 * Math.sin(r)).toFixed(2), (200 - 200 * Math.cos(r)).toFixed(2)];
+    }
+    cfg.prizes.forEach(function (p, i) {
+      var c = PALETTE[i % PALETTE.length];
+      var a = pt(i * step - step / 2), b = pt(i * step + step / 2);
+      svg += '<path d="M200,200 L' + a[0] + ',' + a[1] + ' A200,200 0 0,1 ' + b[0] + ',' + b[1] + ' Z" fill="' + c.bg + '" stroke="#fff" stroke-width="2.5"/>';
+      labels += '<div class="absolute inset-0 flex justify-center" style="transform:rotate(' + (i * step) + 'deg)">' +
+        '<div class="flex flex-col items-center pt-4 w-[76px]">' +
+        '<span class="material-symbols-outlined text-xl" style="color:' + c.fg + '">' + ico(p.icon) + '</span>' +
+        '<span class="text-[9px] uppercase tracking-wider text-slate-800 font-extrabold mt-0.5 max-w-full truncate">' + esc(labelOf(p)) + '</span>' +
+        '</div></div>';
+    });
+    $('wheelSvg').innerHTML = svg;
+    $('wheelLabels').innerHTML = labels;
+  }
+
+  function buildBoosts() {
+    $('boostBtns').innerHTML = cfg.boosts.map(function (m) {
+      return '<button class="boost-btn px-3.5 py-1.5 rounded-full text-xs font-bold transition" data-mult="' + Number(m) + '">' + Number(m) + 'x</button>';
+    }).join('');
+    paintBoosts();
+    $('boostBtns').addEventListener('click', function (e) {
+      var btn = e.target.closest('.boost-btn');
+      if (!btn || spinning) return;
+      boost = parseInt(btn.dataset.mult, 10) || 1;
+      paintBoosts();
+      renderCost();
+    });
+  }
+
+  function paintBoosts() {
+    document.querySelectorAll('.boost-btn').forEach(function (b) {
+      var on = parseInt(b.dataset.mult, 10) === boost;
+      b.className = 'boost-btn px-3.5 py-1.5 rounded-full text-xs transition ' +
+        (on ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 font-semibold');
+    });
+  }
+
+  function buildPrizeList() {
+    var rows = cfg.prizes.filter(function (p) { return p.type !== 'none'; }).map(function (p, i) {
+      var c = PALETTE[i % PALETTE.length], v = valueOf(p);
+      return '<div class="bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-3">' +
+        '<div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background:' + c.bg + '">' +
+        '<span class="material-symbols-outlined" style="color:' + c.fg + '">' + ico(p.icon) + '</span></div>' +
+        '<div class="min-w-0 flex-1"><div class="text-sm font-bold truncate">' + esc(p.name) + '</div>' +
+        (v ? '<div class="mono text-xs text-slate-500">' + esc(v) + '</div>' : '') + '</div></div>';
+    });
+    $('prizeList').innerHTML = rows.join('') || '<p class="text-sm text-slate-500">No prizes yet.</p>';
+  }
+
+  function loadWinners() {
+    var el = $('winnerList');
+    var empty = '<p class="text-sm text-slate-500">Winners will show up here.</p>';
+    if (!API) { el.innerHTML = empty; return; }
+    api('/winners').then(function (d) {
+      var list = d.winners || [];
+      el.innerHTML = list.length ? list.map(function (w) {
+        return '<div class="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3">' +
+          '<span class="text-sm font-bold truncate">' + esc(w.name) + '</span>' +
+          '<span class="text-xs text-slate-600 truncate">' + esc(w.prize) + '</span></div>';
+      }).join('') : empty;
+    }).catch(function () { el.innerHTML = empty; });
+  }
+
+  function showView(v) {
+    ['spin', 'prizes', 'winners', 'wallet'].forEach(function (k) {
+      $('view-' + k).classList.toggle('hidden', k !== v);
+    });
+    document.querySelectorAll('.nav-btn').forEach(function (b) {
+      var on = b.dataset.view === v;
+      b.classList.toggle('text-blue-600', on);
+      b.classList.toggle('text-slate-400', !on);
+    });
+    if (v === 'winners') loadWinners();
+  }
+
+  function confetti() {
+    var box = $('confetti'), colors = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#e11d48'], html = '';
+    for (var i = 0; i < 48; i++) {
+      var size = 6 + Math.floor(Math.random() * 8);
+      html += '<div class="confetti-piece ' + (Math.random() > 0.5 ? 'rounded-sm' : 'rounded-full') + '" style="width:' + size + 'px;height:' + size + 'px;top:-20px;left:' +
+        (Math.random() * 100) + '%;background:' + colors[i % colors.length] + ';animation-delay:' + (Math.random() * 1.5) + 's;animation-duration:' + (1.8 + Math.random() * 1.8) + 's"></div>';
+    }
+    box.innerHTML = html;
+  }
+
+  function showWin(p) {
+    var none = p.type === 'none', idx = cfg.prizes.indexOf(p);
+    var c = PALETTE[(idx < 0 ? 0 : idx) % PALETTE.length];
+    $('winTitle').textContent = none ? 'Not this time' : (p.type === 'cash' ? fmt(p.amount) : p.name);
+    $('winSub').textContent = none ? 'Better luck on the next spin.' :
+      (p.type === 'cash' ? 'Your winnings have been added to your balance.' : 'Congratulations on your win.');
+    $('winBadgeIcon').textContent = none ? 'sentiment_neutral' : 'trophy';
+    $('winPrize').classList.toggle('hidden', none);
+    if (!none) {
+      $('winIcon').textContent = ico(p.icon);
+      $('winIcon').style.color = c.fg;
+      $('winKind').textContent = p.type === 'cash' ? 'Cash prize' : 'Prize';
+      $('winName').textContent = p.name;
+      $('winValue').textContent = valueOf(p);
+      confetti();
+    } else {
+      $('confetti').innerHTML = '';
+    }
+    $('winBackdrop').classList.remove('opacity-0', 'pointer-events-none');
+    $('winCard').classList.remove('scale-90');
+    $('winCard').classList.add('animate-modal-pop');
+  }
+
+  function hideWin() {
+    $('winBackdrop').classList.add('opacity-0', 'pointer-events-none');
+    $('winCard').classList.remove('animate-modal-pop');
+    $('winCard').classList.add('scale-90');
+    $('confetti').innerHTML = '';
+  }
+
+  function setBusy(on) {
+    $('spinBtn').disabled = on;
+    $('spinLabel').textContent = on ? 'SPINNING' : 'SPIN';
+    $('spinIcon').classList.toggle('animate-spin', on);
+  }
+
+  function requestSpin() {
+    if (API) {
+      return api('/spin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ boost: boost })
+      });
+    }
+    // Demo only. Never trust the browser to pick a result on the live site.
+    var total = cfg.prizes.reduce(function (s, p) { return s + (p.weight || 1); }, 0);
+    var r = Math.random() * total, pick = cfg.prizes[cfg.prizes.length - 1];
+    for (var i = 0; i < cfg.prizes.length; i++) {
+      r -= (cfg.prizes[i].weight || 1);
+      if (r < 0) { pick = cfg.prizes[i]; break; }
+    }
+    var bal = cfg.user.balance - cfg.spinPrice * boost + (pick.type === 'cash' ? Number(pick.amount) || 0 : 0);
+    return Promise.resolve({ prizeId: pick.id, balance: bal });
+  }
+
+  function spin() {
+    if (spinning || !cfg) return;
+    if (cfg.user.balance < cfg.spinPrice * boost) {
+      toast('Your balance is too low for this spin. Please top up your wallet.');
+      return;
+    }
+    spinning = true;
+    setBusy(true);
+    requestSpin().then(function (res) {
+      var idx = -1;
+      cfg.prizes.forEach(function (p, i) { if (p.id === res.prizeId) idx = i; });
+      if (idx < 0) throw new Error('Something went wrong. Please try again.');
+      var step = 360 / cfg.prizes.length;
+      var target = (360 - idx * step) % 360;
+      var jitter = (Math.random() - 0.5) * step * 0.6;
+      var full = (6 + Math.floor(Math.random() * 2)) * 360;
+      rotation = Math.ceil(rotation / 360) * 360 + full + target + jitter;
+      var dur = 4600, wheel = $('wheel'), needle = $('needle');
+      wheel.style.transition = 'transform ' + dur + 'ms cubic-bezier(0.12, 0.94, 0.22, 1)';
+      wheel.style.transform = 'rotate(' + rotation + 'deg)';
+      needle.classList.add('needle-ticking');
+      setTimeout(function () { needle.classList.remove('needle-ticking'); }, dur - 300);
+      setTimeout(function () {
+        var p = cfg.prizes[idx];
+        cfg.user.balance = Number(res.balance);
+        renderBalance();
+        if (p.type !== 'none') $('lastWin').textContent = p.type === 'cash' ? fmt(p.amount) : p.name;
+        spinning = false;
+        setBusy(false);
+        showWin(p);
+      }, dur + 180);
+    }).catch(function (e) {
+      spinning = false;
+      setBusy(false);
+      toast(e.message || 'Something went wrong. Please try again.');
+    });
+  }
+
+  function init(c) {
+    cfg = c;
+    if (!cfg.boosts || !cfg.boosts.length) cfg.boosts = [1];
+    if (!cfg.user) cfg.user = { name: 'Guest', balance: 0 };
+    $('appTitle').textContent = cfg.title || 'Winprizez';
+    document.title = cfg.title || 'Winprizez';
+    $('avatar').textContent = (cfg.user.name || 'G').charAt(0).toUpperCase();
+    buildWheel();
+    buildBoosts();
+    buildPrizeList();
+    renderBalance();
+    renderCost();
+    $('spinBtn').disabled = false;
+    showView('spin');
+  }
+
+  $('spinBtn').addEventListener('click', spin);
+  $('winDone').addEventListener('click', hideWin);
+  $('winClose').addEventListener('click', hideWin);
+  $('winAgain').addEventListener('click', function () { hideWin(); setTimeout(spin, 250); });
+  $('winBackdrop').addEventListener('click', function (e) { if (e.target === $('winBackdrop')) hideWin(); });
+  $('nav').addEventListener('click', function (e) {
+    var b = e.target.closest('.nav-btn');
+    if (b) showView(b.dataset.view);
+  });
+
+  var start = API ? api('/config') : Promise.resolve(DEMO_CONFIG);
+  start.then(function (c) {
+    if (!c || !c.prizes || c.prizes.length < 2) throw new Error('bad config');
+    init(c);
+  }).catch(function () {
+    $('view-spin').classList.add('hidden');
+    $('loadError').classList.remove('hidden');
+  });
+})();
+</script>
+</body>
+</html>
