@@ -10,6 +10,9 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   html, body { margin: 0; height: 100%; overflow: hidden; background: #faf8ff; touch-action: pan-y; }
+  /* Bold backdrop behind the wheel on the Spin screen only */
+  html.bg-spin, html.bg-spin body { background: #0b0f2a; }
+  html.bg-spin body { background: radial-gradient(120% 62% at 50% 30%, #6d28d9 0%, #3b1a8f 32%, #1e1b4b 62%, #0b0f2a 100%) fixed; }
   body { font-family: 'Plus Jakarta Sans', sans-serif; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
   .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
   .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
@@ -57,8 +60,9 @@
         <div class="w-5 h-6 bg-rose-500 clip-pointer"></div>
         <div class="w-2.5 h-2.5 rounded-full bg-rose-600 -mt-1 ring-2 ring-white"></div>
       </div>
-      <div class="relative w-[min(326px,88vw)] aspect-square rounded-full p-2 bg-gradient-to-br from-blue-600 via-indigo-600 to-fuchsia-600 border-2 border-white shadow-[0_14px_36px_rgba(37,99,235,0.35)]">
-        <div class="w-full h-full rounded-full relative overflow-hidden" id="wheel" style="transform: rotate(0deg);">
+      <div class="relative rounded-full bg-gradient-to-br from-blue-600 via-indigo-600 to-fuchsia-600 border-[3px] border-white shadow-[0_14px_40px_rgba(124,58,237,0.55)]" style="width:min(344px,92vw);height:min(344px,92vw)">
+        <div class="absolute rounded-full ring-[3px] ring-white" style="inset:14px"></div>
+        <div class="absolute rounded-full overflow-hidden" id="wheel" style="inset:14px;transform: rotate(0deg);">
           <svg class="w-full h-full" viewBox="0 0 400 400" id="wheelSvg"></svg>
           <div class="absolute inset-0 pointer-events-none" id="wheelLabels"></div>
         </div>
@@ -178,6 +182,7 @@
       <span class="material-symbols-outlined text-3xl" id="winBadgeIcon">trophy</span>
     </div>
     <h3 class="text-2xl font-black tracking-tight leading-tight mb-1" id="winTitle"></h3>
+    <p class="text-lg font-extrabold text-blue-700 mb-1 hidden" id="winWon"></p>
     <p class="text-xs text-slate-500 mb-4" id="winSub"></p>
     <div class="w-full bg-[#f8faff] border border-blue-100 rounded-2xl p-4 mb-5 flex items-center gap-3 text-left" id="winPrize">
       <div class="w-14 h-14 rounded-xl bg-white border border-blue-100 flex items-center justify-center shrink-0">
@@ -191,11 +196,33 @@
       </div>
     </div>
     <div class="w-full flex flex-col gap-2.5">
-      <button class="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-extrabold text-sm shadow-lg shadow-blue-600/30 transition" id="winDone">Done</button>
+      <button class="hidden w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-fuchsia-600 active:scale-[0.98] text-white font-extrabold text-sm shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-2" id="winSupport">
+        <span class="material-symbols-outlined text-xl">support_agent</span><span>Contact Support</span>
+      </button>
+      <button class="w-full py-3 rounded-xl bg-blue-50 hover:bg-blue-100 active:scale-[0.98] text-blue-700 font-extrabold text-sm transition" id="winDone">Done</button>
       <button class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 font-bold text-xs transition flex items-center justify-center gap-1.5" id="winAgain">
         <span class="material-symbols-outlined text-base text-slate-500">replay</span><span>Spin Again</span>
       </button>
     </div>
+  </div>
+</div>
+
+<div class="fixed inset-0 z-[58] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none" id="actBackdrop">
+  <div class="relative w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center scale-90 transition-transform duration-300" id="actCard">
+    <button id="actClose" aria-label="Close" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-95"><span class="material-symbols-outlined text-lg">close</span></button>
+    <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blue-600 to-fuchsia-600 text-white flex items-center justify-center shadow-lg shadow-blue-600/30 ring-4 ring-blue-100 mb-3 mt-1">
+      <span class="material-symbols-outlined text-3xl">key</span>
+    </div>
+    <h3 class="text-xl font-black tracking-tight leading-tight mb-1">Enter Activation Key</h3>
+    <p class="text-xs text-slate-500 mb-4">You have used all your spins. Enter your activation key to unlock more spins.</p>
+    <input id="actInput" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Activation key" class="select-text w-full mono text-center text-base font-bold tracking-widest uppercase bg-slate-50 border-2 border-slate-200 focus:border-blue-600 rounded-xl px-4 py-3 outline-none">
+    <p class="hidden text-xs font-semibold text-rose-600 mt-2" id="actErr"></p>
+    <button class="w-full mt-3 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-extrabold text-sm shadow-lg shadow-blue-600/30 transition disabled:opacity-60" id="actBtn">Activate</button>
+    <div class="w-full flex items-center gap-3 my-4"><div class="h-px bg-slate-200 flex-1"></div><span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">No key yet?</span><div class="h-px bg-slate-200 flex-1"></div></div>
+    <p class="text-xs text-slate-500 mb-3">Contact support to get your activation pin.</p>
+    <button class="w-full py-3 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 font-extrabold text-sm active:scale-[0.98] transition flex items-center justify-center gap-2" id="actSupport">
+      <span class="material-symbols-outlined text-xl">support_agent</span><span>Contact Support</span>
+    </button>
   </div>
 </div>
 
@@ -222,6 +249,7 @@
     title: 'Winprizez',
     currency: 'USD',
     boosts: [1, 2, 5, 10],
+    supportUrl: '', // e.g. 'https://wa.me/234XXXXXXXXXX' or 'https://t.me/yourname'. Opened by every Contact Support button.
     user: { name: 'Guest', balance: 1000, spinsLeft: 2 },
     prizes: [
       { id: 'p3', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 200, weight: 6 },
@@ -230,7 +258,7 @@
       { id: 'p7', name: 'Model S', label: 'Model S', image: 'img/models.webp', type: 'item', worth: 40000, badge: 'Grand Prize', category: 'Cars', cashOut: 32000, weight: 1 },
       { id: 'p1', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 1000, badge: 'Instant Payout', category: 'Direct', weight: 2 },
       { id: 'p5', name: 'Model Y', label: 'Model Y', image: 'img/modely.webp', type: 'item', worth: 30000, badge: 'Grand Prize', category: 'Cars', cashOut: 24000, weight: 1 },
-      { id: 'p2', name: 'Smartphone', icon: 'smartphone', type: 'item', worth: 600, badge: 'Tech Favorite', category: 'Tech', cashOut: 500, weight: 1 },
+      { id: 'p2', name: 'iPhone 18 Pro Max', label: 'iPhone 18\nPro Max', image: 'img/iphone.webp', tall: true, type: 'item', worth: 1500, badge: 'Tech Favorite', category: 'Tech', cashOut: 1200, weight: 1 },
       { id: 'p8', name: 'Model Y Blue', label: 'Model Y', image: 'img/modelyblue.webp', type: 'item', worth: 30000, badge: 'Grand Prize', category: 'Cars', cashOut: 24000, weight: 1 }
     ]
   };
@@ -460,6 +488,7 @@
     win: { icon: 'emoji_events', box: 'bg-emerald-50 text-emerald-600', label: 'Win', sign: '+', color: 'text-emerald-600' },
     lose: { icon: 'sentiment_neutral', box: 'bg-slate-100 text-slate-500', label: 'No win', sign: '', color: 'text-slate-400' },
     claim: { icon: 'redeem', box: 'bg-amber-50 text-amber-600', label: 'Claimed', sign: '-', color: 'text-amber-600' },
+    activate: { icon: 'key', box: 'bg-violet-50 text-violet-600', label: 'Activation', sign: '', color: 'text-violet-600' },
     request: { icon: 'add_circle', box: 'bg-blue-50 text-blue-600', label: 'Spin request', sign: '', color: 'text-blue-600' }
   };
   function renderActivity() {
@@ -568,13 +597,14 @@
       body += '<path d="M200,200 L' + a[0] + ',' + a[1] + ' A200,200 0 0,1 ' + b[0] + ',' + b[1] + ' Z" fill="url(#wg' + i + ')" stroke="#fff" stroke-width="3"/>';
       var shadow = 'text-shadow:0 1px 3px rgba(0,0,0,.55)';
       var top = imgOf(p) ?
-        '<img src="' + esc(imgOf(p)) + '" alt="" draggable="false" decoding="async" class="w-[76px] h-[46px] object-contain" style="filter:drop-shadow(0 3px 3px rgba(0,0,0,.45))">' :
+        '<img src="' + esc(imgOf(p)) + '" alt="" draggable="false" decoding="async" class="' + (p.tall ? 'w-[56px] h-[52px]' : 'w-[76px] h-[46px]') + ' object-contain" style="filter:drop-shadow(0 3px 3px rgba(0,0,0,.45))">' :
         '<span class="material-symbols-outlined text-2xl text-white" style="' + shadow + '">' + ico(p.icon) + '</span>';
       labels += '<div class="absolute inset-0 flex justify-center" style="transform:rotate(' + (i * step) + 'deg)">' +
         '<div class="flex flex-col items-center ' + (imgOf(p) ? 'pt-3' : 'pt-4') + ' w-[88px]">' + top +
-        '<span class="text-[8px] uppercase tracking-wide text-white font-black mt-0.5 max-w-full whitespace-nowrap" style="' + shadow + '">' + esc(labelOf(p)) + '</span>' +
+        '<span class="text-[8px] uppercase tracking-wide text-white font-black mt-0.5 max-w-full whitespace-nowrap text-center leading-tight" style="' + shadow + '">' + esc(labelOf(p)).replace(/\n/g, '<br>') + '</span>' +
         '</div></div>';
     });
+    body += '<circle cx="200" cy="200" r="70" fill="none" stroke="rgba(8,12,40,0.62)" stroke-width="20"/><circle cx="200" cy="200" r="80" fill="none" stroke="#fff" stroke-width="3"/>';
     $('wheelSvg').innerHTML = svg + '</defs>' + body;
     $('wheelLabels').innerHTML = labels;
   }
@@ -618,7 +648,7 @@
     var n = Date.now(), m = 60000, h = 3600000;
     return { list: [
       { name: '@Alex_C', prize: 'Cash Prize', amount: 1000, tag: 'Direct', time: n - 2 * m, tx: '8497', status: 'Claimed' },
-      { name: '@Sarah_K', prize: 'Smartphone', amount: 600, tag: 'Tech', time: n - 18 * m, tx: '8492', status: 'Claimed' },
+      { name: '@Sarah_K', prize: 'iPhone 18 Pro Max', amount: 1200, tag: 'Tech', time: n - 18 * m, tx: '8492', status: 'Claimed' },
       { name: '@David_M', prize: 'Cash Prize', amount: 500, tag: 'Direct', time: n - 45 * m, tx: '8488', status: 'Claimed' },
       { name: '@Elena_R', prize: 'Model Y', amount: 24000, tag: 'Cars', time: n - 3 * h, tx: '8471', status: 'Claimed' },
       { name: '@Sarah_K', prize: 'Cash Prize', amount: 200, tag: 'Direct', time: n - 5 * h, tx: '8450', status: 'Claimed' }
@@ -715,6 +745,7 @@
       b.classList.toggle('text-blue-600', on);
       b.classList.toggle('text-slate-400', !on);
     });
+    document.documentElement.classList.toggle('bg-spin', v === 'spin');
     if (v === 'winners') loadWinners();
     if (v === 'prizes') buildPrizeList();
     if (v === 'wallet') loadActivity();
@@ -734,9 +765,11 @@
     var none = p.type === 'none', idx = cfg.prizes.indexOf(p);
     (none ? sfx.lose : sfx.win)();
     var c = PALETTE[(idx < 0 ? 0 : idx) % PALETTE.length];
-    $('winTitle').textContent = none ? 'Not this time' : (p.type === 'cash' ? fmt(gain > 0 ? gain : p.amount) : p.name);
-    $('winSub').textContent = none ? 'Better luck on the next spin.' :
-      (gain > 0 ? (p.type === 'cash' ? 'Your winnings have been added to your balance.' : 'Its cash value has been added to your balance.') : 'Congratulations on your win.');
+    $('winTitle').textContent = none ? 'Not this time' : 'CONGRATULATIONS';
+    $('winWon').textContent = none ? '' : 'You have won ' + (p.type === 'cash' ? fmt(gain > 0 ? gain : p.amount) : p.name);
+    $('winWon').classList.toggle('hidden', none);
+    $('winSupport').classList.toggle('hidden', none);
+    $('winSub').textContent = none ? 'Better luck on the next spin.' : 'Kindly contact support and claim your winning.';
     $('winBadgeIcon').textContent = none ? 'sentiment_neutral' : 'trophy';
     $('winPrize').classList.toggle('hidden', none);
     if (!none) {
@@ -835,7 +868,7 @@
   function spin() {
     if (spinning || !cfg) return;
     if ((Number(cfg.user.spinsLeft) || 0) < 1) {
-      toast('You have no spins left today. Come back tomorrow for more.');
+      openActivation();
       return;
     }
     if ((Number(cfg.user.spinsLeft) || 0) < boost) boost = 1;
@@ -989,7 +1022,7 @@
   $('menuBtn').addEventListener('click', openMenu);
   $('menuClose').addEventListener('click', closeMenu);
   $('menuBackdrop').addEventListener('click', closeMenu);
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeMenu(); closeActivation(); } });
 
   ['curSel', 'curSel2'].forEach(function (id) {
     $(id).addEventListener('change', function () {
@@ -998,6 +1031,64 @@
       setCurrency(want);
     });
   });
+
+  // Contact support: opens cfg.supportUrl (WhatsApp, Telegram, email link ...).
+  function contactSupport() {
+    if (cfg && cfg.supportUrl) window.open(cfg.supportUrl, '_blank', 'noopener');
+    else toast('Support contact is not set up yet.');
+  }
+  $('winSupport').addEventListener('click', contactSupport);
+  $('actSupport').addEventListener('click', contactSupport);
+
+  // Activation key. Live mode posts { key } to {API}/activate and expects { spinsLeft }.
+  // Demo mode accepts the key WINPRIZEZ (5 spins) so the flow can be tried without a server.
+  var actBusy = false;
+  function openActivation() {
+    $('actInput').value = '';
+    $('actErr').classList.add('hidden');
+    $('actBackdrop').classList.remove('opacity-0', 'pointer-events-none');
+    $('actCard').classList.remove('scale-90');
+    $('actCard').classList.add('animate-modal-pop');
+    setTimeout(function () { $('actInput').focus(); }, 350);
+  }
+  function closeActivation() {
+    $('actInput').blur();
+    $('actBackdrop').classList.add('opacity-0', 'pointer-events-none');
+    $('actCard').classList.remove('animate-modal-pop');
+    $('actCard').classList.add('scale-90');
+  }
+  function activate() {
+    if (actBusy) return;
+    var key = $('actInput').value.trim();
+    var err = $('actErr');
+    if (!key) { err.textContent = 'Please enter your activation key.'; err.classList.remove('hidden'); return; }
+    actBusy = true;
+    $('actBtn').disabled = true;
+    $('actBtn').textContent = 'Activating...';
+    err.classList.add('hidden');
+    var call = API ?
+      api('/activate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: key }) }) :
+      (key.toUpperCase() === 'WINPRIZEZ' ? Promise.resolve({ spinsLeft: (Number(cfg.user.spinsLeft) || 0) + 5 }) : Promise.reject(new Error('Invalid activation key.')));
+    call.then(function (res) {
+      var before = Number(cfg.user.spinsLeft) || 0;
+      if (res && res.spinsLeft != null) cfg.user.spinsLeft = Number(res.spinsLeft);
+      renderSpins();
+      logAct('activate', 'Activation key used', 0);
+      closeActivation();
+      toast('Activated. You now have ' + cfg.user.spinsLeft + (cfg.user.spinsLeft === 1 ? ' spin.' : ' spins.'));
+    }).catch(function (e) {
+      err.textContent = (e && e.message) || 'Invalid activation key.';
+      err.classList.remove('hidden');
+    }).then(function () {
+      actBusy = false;
+      $('actBtn').disabled = false;
+      $('actBtn').textContent = 'Activate';
+    });
+  }
+  $('actBtn').addEventListener('click', activate);
+  $('actInput').addEventListener('keydown', function (e) { if (e.key === 'Enter') activate(); });
+  $('actClose').addEventListener('click', closeActivation);
+  $('actBackdrop').addEventListener('click', function (e) { if (e.target === this) closeActivation(); });
 
   // Withdraw: behavior to be defined.
   $('withdrawBtn').addEventListener('click', function () { toast('Withdrawals are coming soon.'); });
