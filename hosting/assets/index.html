@@ -54,7 +54,7 @@
         <div class="w-5 h-6 bg-rose-500 clip-pointer"></div>
         <div class="w-2.5 h-2.5 rounded-full bg-rose-600 -mt-1 ring-2 ring-white"></div>
       </div>
-      <div class="relative w-[min(326px,88vw)] aspect-square rounded-full p-2 bg-white border border-slate-200 shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
+      <div class="relative w-[min(326px,88vw)] aspect-square rounded-full p-2 bg-gradient-to-br from-blue-600 via-indigo-600 to-fuchsia-600 border-2 border-white shadow-[0_14px_36px_rgba(37,99,235,0.35)]">
         <div class="w-full h-full rounded-full relative overflow-hidden" id="wheel" style="transform: rotate(0deg);">
           <svg class="w-full h-full" viewBox="0 0 400 400" id="wheelSvg"></svg>
           <div class="absolute inset-0 pointer-events-none" id="wheelLabels"></div>
@@ -68,6 +68,10 @@
     </div>
 
     <div class="w-full flex flex-col items-center gap-3 mt-4">
+      <div class="flex items-center justify-between p-1 bg-white border-2 border-blue-600/20 rounded-full w-full max-w-xs">
+        <span class="text-xs font-extrabold text-blue-700 pl-3 uppercase tracking-wider">Boost</span>
+        <div class="flex items-center gap-1" id="boostBtns"></div>
+      </div>
       <div class="w-full grid grid-cols-2 gap-2">
         <div class="bg-white border border-slate-200/90 rounded-xl p-2.5 flex items-center gap-3">
           <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
@@ -126,6 +130,7 @@
     <div class="w-full bg-[#f8faff] border border-blue-100 rounded-2xl p-4 mb-5 flex items-center gap-3 text-left" id="winPrize">
       <div class="w-14 h-14 rounded-xl bg-white border border-blue-100 flex items-center justify-center shrink-0">
         <span class="material-symbols-outlined text-3xl" id="winIcon">redeem</span>
+        <img id="winImg" alt="" class="hidden w-12 h-12 object-contain">
       </div>
       <div class="flex-1 min-w-0">
         <div class="text-[11px] uppercase tracking-wider font-bold text-blue-600" id="winKind"></div>
@@ -164,16 +169,17 @@
   var DEMO_CONFIG = {
     title: 'Winprizez',
     currency: '',
+    boosts: [1, 2, 5, 10],
     user: { name: 'Guest', balance: 1000, spinsLeft: 2 },
     prizes: [
-      { id: 'p1', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 1000, badge: 'Instant Payout', category: 'Direct', weight: 2 },
-      { id: 'p2', name: 'Smartphone', icon: 'smartphone', type: 'item', worth: 600, badge: 'Tech Favorite', category: 'Tech', cashOut: 500, weight: 1 },
       { id: 'p3', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 200, weight: 6 },
+      { id: 'p6', name: 'Cybertruck', label: 'Cybertruck', image: 'img/cybertruck.webp', type: 'item', worth: 50000, badge: 'Grand Prize', category: 'Cars', cashOut: 40000, weight: 1 },
       { id: 'p4', name: 'Try Again', label: 'Try Again', icon: 'refresh', type: 'none', weight: 8 },
-      { id: 'p5', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 500, weight: 4 },
-      { id: 'p6', name: 'Gift Box', icon: 'card_giftcard', type: 'item', worth: 150, badge: 'Surprise', category: 'Gifts', cashOut: 120, weight: 2 },
-      { id: 'p7', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 100, weight: 8 },
-      { id: 'p8', name: 'Try Again', label: 'Try Again', icon: 'refresh', type: 'none', weight: 8 }
+      { id: 'p7', name: 'Model S', label: 'Model S', image: 'img/models.webp', type: 'item', worth: 40000, badge: 'Grand Prize', category: 'Cars', cashOut: 32000, weight: 1 },
+      { id: 'p1', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 1000, badge: 'Instant Payout', category: 'Direct', weight: 2 },
+      { id: 'p5', name: 'Model Y', label: 'Model Y', image: 'img/modely.webp', type: 'item', worth: 30000, badge: 'Grand Prize', category: 'Cars', cashOut: 24000, weight: 1 },
+      { id: 'p2', name: 'Smartphone', icon: 'smartphone', type: 'item', worth: 600, badge: 'Tech Favorite', category: 'Tech', cashOut: 500, weight: 1 },
+      { id: 'p8', name: 'Model Y Blue', label: 'Model Y', image: 'img/modelyblue.webp', type: 'item', worth: 30000, badge: 'Grand Prize', category: 'Cars', cashOut: 24000, weight: 1 }
     ]
   };
 
@@ -184,6 +190,14 @@
     { bg: '#E6FFFA', fg: '#0d9488' }, { bg: '#FFFBEB', fg: '#f59e0b' }
   ];
 
+  // Bold wheel colors: base is the bright rim color, dark is the shade toward the center.
+  var WHEEL = [
+    { base: '#10B981', dark: '#047857' }, { base: '#2563EB', dark: '#1E3A8A' },
+    { base: '#F97316', dark: '#C2410C' }, { base: '#8B5CF6', dark: '#5B21B6' },
+    { base: '#F43F5E', dark: '#BE123C' }, { base: '#06B6D4', dark: '#0E7490' },
+    { base: '#EC4899', dark: '#9D174D' }, { base: '#F59E0B', dark: '#B45309' }
+  ];
+
   var $ = function (id) { return document.getElementById(id); };
   var esc = function (s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -192,7 +206,7 @@
   };
   var ico = function (s) { return /^[a-z0-9_]+$/.test(s || '') ? s : 'redeem'; };
 
-  var cfg = null, rotation = 0, spinning = false, shown = 0, pending = null, claimArm = null, claimTimer = null, wTab = 'live', wData = { list: [], standing: null };
+  var cfg = null, rotation = 0, spinning = false, boost = 1, shown = 0, pending = null, claimArm = null, claimTimer = null, wTab = 'live', wData = { list: [], standing: null };
 
   var AC = null, soundOn = true, bufs = {}, spinSrc = null;
   // Real recorded sounds, kept in the sounds folder next to index.html. If a file is missing or does not load, a built-in sound is used instead.
@@ -342,27 +356,61 @@
 
   function renderSpins() {
     var n = Math.max(0, Number(cfg.user.spinsLeft) || 0);
-    $('spinSub').textContent = n + (n === 1 ? ' spin left' : ' spins left');
+    if (boost > Math.max(1, n)) boost = 1;
+    $('spinSub').textContent = boost > 1 ? 'Uses ' + boost + ' spins' : n + (n === 1 ? ' spin left' : ' spins left');
     $('spinsCard').textContent = n;
+    paintBoosts();
+  }
+
+  function buildBoosts() {
+    $('boostBtns').innerHTML = cfg.boosts.map(function (m) {
+      return '<button class="boost-btn px-3.5 py-1.5 rounded-full text-xs transition" data-mult="' + Number(m) + '">' + Number(m) + 'x</button>';
+    }).join('');
+    paintBoosts();
+    $('boostBtns').addEventListener('click', function (e) {
+      var btn = e.target.closest('.boost-btn');
+      if (!btn || spinning) return;
+      var m = parseInt(btn.dataset.mult, 10) || 1;
+      if (m > (Number(cfg.user.spinsLeft) || 0)) {
+        toast('You need ' + m + ' spins left to use ' + m + 'x boost.');
+        return;
+      }
+      boost = m;
+      renderSpins();
+    });
+  }
+
+  function paintBoosts() {
+    var n = Number(cfg.user.spinsLeft) || 0;
+    document.querySelectorAll('.boost-btn').forEach(function (b) {
+      var m = parseInt(b.dataset.mult, 10), on = m === boost;
+      b.className = 'boost-btn px-3.5 py-1.5 rounded-full text-xs transition ' +
+        (on ? 'bg-gradient-to-r from-blue-600 to-fuchsia-600 text-white font-extrabold shadow-md shadow-blue-600/30' : 'text-slate-700 font-bold') +
+        (!on && m > n ? ' opacity-40' : '');
+    });
   }
 
   function buildWheel() {
-    var n = cfg.prizes.length, step = 360 / n, svg = '', labels = '';
+    var n = cfg.prizes.length, step = 360 / n, svg = '<defs>', body = '', labels = '';
     function pt(a) {
       var r = a * Math.PI / 180;
       return [(200 + 200 * Math.sin(r)).toFixed(2), (200 - 200 * Math.cos(r)).toFixed(2)];
     }
     cfg.prizes.forEach(function (p, i) {
-      var c = PALETTE[i % PALETTE.length];
+      var w = WHEEL[i % WHEEL.length];
+      svg += '<radialGradient id="wg' + i + '" gradientUnits="userSpaceOnUse" cx="200" cy="200" r="200"><stop offset="0.2" stop-color="' + w.dark + '"/><stop offset="1" stop-color="' + w.base + '"/></radialGradient>';
       var a = pt(i * step - step / 2), b = pt(i * step + step / 2);
-      svg += '<path d="M200,200 L' + a[0] + ',' + a[1] + ' A200,200 0 0,1 ' + b[0] + ',' + b[1] + ' Z" fill="' + c.bg + '" stroke="#fff" stroke-width="2.5"/>';
+      body += '<path d="M200,200 L' + a[0] + ',' + a[1] + ' A200,200 0 0,1 ' + b[0] + ',' + b[1] + ' Z" fill="url(#wg' + i + ')" stroke="#fff" stroke-width="3"/>';
+      var shadow = 'text-shadow:0 1px 3px rgba(0,0,0,.55)';
+      var top = p.image ?
+        '<img src="' + esc(p.image) + '" alt="" draggable="false" decoding="async" class="w-[76px] h-[46px] object-contain" style="filter:drop-shadow(0 3px 3px rgba(0,0,0,.45))">' :
+        '<span class="material-symbols-outlined text-2xl text-white" style="' + shadow + '">' + ico(p.icon) + '</span>';
       labels += '<div class="absolute inset-0 flex justify-center" style="transform:rotate(' + (i * step) + 'deg)">' +
-        '<div class="flex flex-col items-center pt-4 w-[76px]">' +
-        '<span class="material-symbols-outlined text-xl" style="color:' + c.fg + '">' + ico(p.icon) + '</span>' +
-        '<span class="text-[9px] uppercase tracking-wider text-slate-800 font-extrabold mt-0.5 max-w-full truncate">' + esc(labelOf(p)) + '</span>' +
+        '<div class="flex flex-col items-center ' + (p.image ? 'pt-3' : 'pt-4') + ' w-[88px]">' + top +
+        '<span class="text-[10px] uppercase tracking-wider text-white font-black mt-0.5 max-w-full truncate" style="' + shadow + '">' + esc(labelOf(p)) + '</span>' +
         '</div></div>';
     });
-    $('wheelSvg').innerHTML = svg;
+    $('wheelSvg').innerHTML = svg + '</defs>' + body;
     $('wheelLabels').innerHTML = labels;
   }
 
@@ -385,7 +433,7 @@
       var cr = creditOf(p), note = p.type !== 'cash' && cr > 0 ? 'Paid as cash: ' + fmt(cr) : (p.note || '');
       return '<div class="bg-white border border-slate-200/80 rounded-2xl p-3 flex gap-3 shadow-sm">' +
         '<div class="relative w-24 h-24 shrink-0 rounded-xl overflow-hidden flex items-center justify-center" style="background:' + c.bg + '">' +
-        (p.image ? '<img src="' + esc(p.image) + '" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover">' :
+        (p.image ? '<img src="' + esc(p.image) + '" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-contain p-2">' :
           '<span class="material-symbols-outlined text-4xl" style="color:' + c.fg + '">' + ico(p.icon) + '</span>') +
         (p.category ? '<span class="absolute left-1.5 bottom-1.5 px-2 py-0.5 rounded-md bg-white/90 text-[10px] font-bold text-slate-800">' + esc(p.category) + '</span>' : '') +
         '</div><div class="min-w-0 flex-1 flex flex-col justify-between">' +
@@ -407,7 +455,7 @@
       { name: '@Alex_C', prize: 'Cash Prize', amount: 1000, tag: 'Direct', time: n - 2 * m, tx: '8497', status: 'Claimed' },
       { name: '@Sarah_K', prize: 'Smartphone', amount: 600, tag: 'Tech', time: n - 18 * m, tx: '8492', status: 'Claimed' },
       { name: '@David_M', prize: 'Cash Prize', amount: 500, tag: 'Direct', time: n - 45 * m, tx: '8488', status: 'Claimed' },
-      { name: '@Elena_R', prize: 'Gift Box', amount: 150, tag: 'Gifts', time: n - 3 * h, tx: '8471', status: 'Claimed' },
+      { name: '@Elena_R', prize: 'Model Y', amount: 24000, tag: 'Cars', time: n - 3 * h, tx: '8471', status: 'Claimed' },
       { name: '@Sarah_K', prize: 'Cash Prize', amount: 200, tag: 'Direct', time: n - 5 * h, tx: '8450', status: 'Claimed' }
     ], standing: { rank: 142, won: 500, spins: 12, note: '' } };
   }
@@ -528,6 +576,9 @@
     if (!none) {
       $('winIcon').textContent = ico(p.icon);
       $('winIcon').style.color = c.fg;
+      $('winIcon').classList.toggle('hidden', !!p.image);
+      $('winImg').classList.toggle('hidden', !p.image);
+      if (p.image) $('winImg').src = p.image;
       $('winKind').textContent = p.type === 'cash' ? 'Cash prize' : (gain > 0 ? 'Paid out as cash' : 'Prize');
       $('winName').textContent = p.name;
       $('winValue').textContent = p.type !== 'cash' && gain > 0 ? fmt(gain) : valueOf(p);
@@ -586,7 +637,7 @@
   }
 
   function closeWin(next) {
-    var from = $('winIcon').getBoundingClientRect();
+    var from = ($('winImg').classList.contains('hidden') ? $('winIcon') : $('winImg')).getBoundingClientRect();
     hideWin();
     collect(from).then(function () { if (next) next(); });
   }
@@ -597,12 +648,12 @@
     $('spinIcon').classList.toggle('animate-spin', on);
   }
 
-  function requestSpin() {
+  function requestSpin(used) {
     if (API) {
       return api('/spin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: '{}'
+        body: JSON.stringify({ boost: used })
       });
     }
     // Demo only. Never trust the browser to pick a result on the live site.
@@ -612,7 +663,7 @@
       r -= (cfg.prizes[i].weight || 1);
       if (r < 0) { pick = cfg.prizes[i]; break; }
     }
-    return Promise.resolve({ prizeId: pick.id, balance: cfg.user.balance + creditOf(pick), spinsLeft: cfg.user.spinsLeft });
+    return Promise.resolve({ prizeId: pick.id, balance: cfg.user.balance + creditOf(pick) * used, spinsLeft: cfg.user.spinsLeft });
   }
 
   function spin() {
@@ -621,13 +672,14 @@
       toast('You have no spins left today. Come back tomorrow for more.');
       return;
     }
+    if ((Number(cfg.user.spinsLeft) || 0) < boost) boost = 1;
     audio();
-    var spinsBefore = cfg.user.spinsLeft;
-    cfg.user.spinsLeft = spinsBefore - 1;
+    var spinsBefore = cfg.user.spinsLeft, used = boost;
+    cfg.user.spinsLeft = spinsBefore - used;
     renderSpins();
     spinning = true;
     setBusy(true);
-    requestSpin().then(function (res) {
+    requestSpin(used).then(function (res) {
       var idx = -1;
       cfg.prizes.forEach(function (p, i) { if (p.id === res.prizeId) idx = i; });
       if (idx < 0) throw new Error('Something went wrong. Please try again.');
@@ -667,11 +719,13 @@
 
   function init(c) {
     cfg = c;
+    if (!cfg.boosts || !cfg.boosts.length) cfg.boosts = [1];
     if (!cfg.user) cfg.user = { name: 'Guest', balance: 0, spinsLeft: 0 };
     $('appTitle').textContent = cfg.title || 'Winprizez';
     document.title = cfg.title || 'Winprizez';
     $('avatar').textContent = (cfg.user.name || 'G').charAt(0).toUpperCase();
     buildWheel();
+    buildBoosts();
     buildPrizeList();
     shown = cfg.user.balance;
     if (!API) wData = demoWinners();
