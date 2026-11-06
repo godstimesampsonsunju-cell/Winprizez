@@ -114,9 +114,29 @@
   <section id="view-wallet" class="hidden w-full">
     <h2 class="text-lg font-extrabold mb-3">Wallet</h2>
     <div class="bg-white border border-slate-200 rounded-2xl p-5">
-      <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Balance</div>
-      <div class="mono text-3xl font-extrabold mt-1" id="walletBalance">0</div>
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <div class="text-xs font-bold uppercase tracking-wider text-slate-400">Balance</div>
+          <div class="mono text-3xl font-extrabold mt-1 truncate" id="walletBalance">0</div>
+        </div>
+        <button id="withdrawBtn" class="shrink-0 px-4 py-2 rounded-full bg-gradient-to-r from-blue-600 to-fuchsia-600 text-white text-xs font-extrabold flex items-center gap-1 shadow-md shadow-blue-600/30 active:scale-95 transition">
+          <span class="material-symbols-outlined text-base">arrow_outward</span>Withdraw
+        </button>
+      </div>
+      <div class="flex items-end justify-between gap-3 mt-4">
+        <div>
+          <label for="curSel2" class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Currency</label>
+          <select id="curSel2" class="mono text-sm font-extrabold text-blue-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none">
+            <option value="USD">$ USD</option>
+            <option value="EUR">€ EUR</option>
+            <option value="GBP">£ GBP</option>
+          </select>
+        </div>
+        <img src="img/cash.webp" alt="" class="w-24 h-auto object-contain" draggable="false">
+      </div>
     </div>
+    <h3 class="text-sm font-extrabold mt-5 mb-2">Activity</h3>
+    <div class="flex flex-col gap-2" id="activityList"></div>
   </section>
 
   <p class="hidden text-sm text-slate-500 text-center mt-10" id="loadError">We could not load the game. Please refresh the page.</p>
@@ -134,12 +154,17 @@
     <div class="mt-3 text-base font-extrabold truncate max-w-full" id="menuName">Guest</div>
     <div class="text-xs text-slate-500 truncate max-w-full hidden" id="menuSub"></div>
   </div>
-  <div class="p-3 flex flex-col gap-1 overflow-y-auto" id="menuList">
+  <div class="p-3 flex flex-col gap-1 overflow-y-auto flex-1" id="menuList">
     <!-- Add future menu rows here, same markup as the Sound row. -->
     <button id="soundBtn" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl active:bg-slate-50 text-left">
       <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-xl" id="soundIcon">volume_up</span></span>
       <span class="flex-1 text-sm font-bold">Sound</span>
       <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase" id="soundState">On</span>
+    </button>
+  </div>
+  <div class="p-3 border-t border-slate-100 shrink-0">
+    <button id="authBtn" class="w-full py-3.5 rounded-xl font-extrabold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition">
+      <span class="material-symbols-outlined text-xl" id="authIcon">person_add</span><span id="authLabel">Sign up</span>
     </button>
   </div>
 </aside>
@@ -383,19 +408,23 @@
     });
   }
 
+  function syncSel() { $('curSel').value = cur; $('curSel2').value = cur; }
+  function curBusy(on) { $('curSel').disabled = on; $('curSel2').disabled = on; }
+
   function afterCurrency() {
-    $('curSel').value = cur;
+    syncSel();
     renderBalance();
     buildWheel();
     buildPrizeList();
     renderWinners();
     renderLastWin();
+    renderActivity();
   }
 
   function setCurrency(code) {
     if (CURS.indexOf(code) < 0) return Promise.resolve();
     if (code === base) { cur = code; saveCur(); afterCurrency(); return Promise.resolve(); }
-    $('curSel').disabled = true;
+    curBusy(true);
     return loadRates().catch(function () {
       var c = savedRates();
       if (!c) throw new Error('no rates');
@@ -404,11 +433,48 @@
     }).then(function () {
       cur = code; saveCur(); afterCurrency();
     }).catch(function () {
-      $('curSel').value = cur;
+      syncSel();
       toast('Could not load exchange rates. Please try again.');
-    }).then(function () { $('curSel').disabled = false; });
+    }).then(function () { curBusy(false); });
   }
   function saveCur() { try { localStorage.setItem('wp_cur', cur); } catch (e) { /* storage blocked */ } }
+
+  // Activity record. Live mode reads GET {API}/activity -> { activity: [{ type, title, amount, time }] }.
+  // Demo mode keeps the record in this browser. type: 'win' | 'lose' | 'claim' | 'request'.
+  var activity = [];
+  function loadActivityLocal() {
+    try { activity = JSON.parse(localStorage.getItem('wp_activity') || '[]'); } catch (e) { activity = []; }
+    if (!Array.isArray(activity)) activity = [];
+  }
+  function logAct(type, title, amount) {
+    activity.unshift({ type: type, title: title, amount: Number(amount) || 0, time: Date.now() });
+    activity = activity.slice(0, 50);
+    if (!API) { try { localStorage.setItem('wp_activity', JSON.stringify(activity)); } catch (e) { /* storage blocked */ } }
+    renderActivity();
+  }
+  function loadActivity() {
+    if (!API) { renderActivity(); return; }
+    api('/activity').then(function (d) { activity = (d && d.activity) || []; renderActivity(); }).catch(renderActivity);
+  }
+  var ACT = {
+    win: { icon: 'emoji_events', box: 'bg-emerald-50 text-emerald-600', label: 'Win', sign: '+', color: 'text-emerald-600' },
+    lose: { icon: 'sentiment_neutral', box: 'bg-slate-100 text-slate-500', label: 'No win', sign: '', color: 'text-slate-400' },
+    claim: { icon: 'redeem', box: 'bg-amber-50 text-amber-600', label: 'Claimed', sign: '-', color: 'text-amber-600' },
+    request: { icon: 'add_circle', box: 'bg-blue-50 text-blue-600', label: 'Spin request', sign: '', color: 'text-blue-600' }
+  };
+  function renderActivity() {
+    var el = $('activityList');
+    if (!el) return;
+    if (!activity.length) { el.innerHTML = '<p class="text-sm text-slate-500">Your wins and other activity will show up here.</p>'; return; }
+    el.innerHTML = activity.map(function (a) {
+      var t = ACT[a.type] || ACT.request, amt = Number(a.amount) > 0 ? t.sign + fmt(a.amount) : '';
+      return '<div class="bg-white border border-slate-200/80 rounded-2xl p-3 flex items-center gap-3">' +
+        '<div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ' + t.box + '"><span class="material-symbols-outlined text-xl">' + t.icon + '</span></div>' +
+        '<div class="min-w-0 flex-1"><div class="text-sm font-extrabold truncate">' + esc(a.title) + '</div>' +
+        '<div class="text-[11px] text-slate-500">' + t.label + ' &middot; ' + ago(a.time) + '</div></div>' +
+        '<div class="mono text-sm font-extrabold shrink-0 ' + t.color + '">' + esc(amt) + '</div></div>';
+    }).join('');
+  }
 
   function renderLastWin() {
     if (!lastWinState) return;
@@ -421,6 +487,9 @@
     if (p.type === 'none') return 0;
     return Number(p.cashOut != null ? p.cashOut : p.worth) || 0;
   }
+
+  // Cash prizes always use the cash image unless the prize brings its own image.
+  function imgOf(p) { return p.image || (p.type === 'cash' ? 'img/cash.webp' : ''); }
 
   function labelOf(p) { return p.label || (p.type === 'cash' ? fmt(p.amount, true) : p.name); }
   function valueOf(p) { return p.type === 'cash' ? fmt(p.amount) : (p.worth != null ? fmt(p.worth) : (p.value || '')); }
@@ -498,11 +567,11 @@
       var a = pt(i * step - step / 2), b = pt(i * step + step / 2);
       body += '<path d="M200,200 L' + a[0] + ',' + a[1] + ' A200,200 0 0,1 ' + b[0] + ',' + b[1] + ' Z" fill="url(#wg' + i + ')" stroke="#fff" stroke-width="3"/>';
       var shadow = 'text-shadow:0 1px 3px rgba(0,0,0,.55)';
-      var top = p.image ?
-        '<img src="' + esc(p.image) + '" alt="" draggable="false" decoding="async" class="w-[76px] h-[46px] object-contain" style="filter:drop-shadow(0 3px 3px rgba(0,0,0,.45))">' :
+      var top = imgOf(p) ?
+        '<img src="' + esc(imgOf(p)) + '" alt="" draggable="false" decoding="async" class="w-[76px] h-[46px] object-contain" style="filter:drop-shadow(0 3px 3px rgba(0,0,0,.45))">' :
         '<span class="material-symbols-outlined text-2xl text-white" style="' + shadow + '">' + ico(p.icon) + '</span>';
       labels += '<div class="absolute inset-0 flex justify-center" style="transform:rotate(' + (i * step) + 'deg)">' +
-        '<div class="flex flex-col items-center ' + (p.image ? 'pt-3' : 'pt-4') + ' w-[88px]">' + top +
+        '<div class="flex flex-col items-center ' + (imgOf(p) ? 'pt-3' : 'pt-4') + ' w-[88px]">' + top +
         '<span class="text-[8px] uppercase tracking-wide text-white font-black mt-0.5 max-w-full whitespace-nowrap" style="' + shadow + '">' + esc(labelOf(p)) + '</span>' +
         '</div></div>';
     });
@@ -529,7 +598,7 @@
       var cr = creditOf(p), note = p.type !== 'cash' && cr > 0 ? 'Paid as cash: ' + fmt(cr) : (p.note || '');
       return '<div class="bg-white border border-slate-200/80 rounded-2xl p-3 flex gap-3 shadow-sm">' +
         '<div class="relative w-24 h-24 shrink-0 rounded-xl overflow-hidden flex items-center justify-center" style="background:' + c.bg + '">' +
-        (p.image ? '<img src="' + esc(p.image) + '" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-contain p-2">' :
+        (imgOf(p) ? '<img src="' + esc(imgOf(p)) + '" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-contain p-2">' :
           '<span class="material-symbols-outlined text-4xl" style="color:' + c.fg + '">' + ico(p.icon) + '</span>') +
         (p.category ? '<span class="absolute left-1.5 bottom-1.5 px-2 py-0.5 rounded-md bg-white/90 text-[10px] font-bold text-slate-800">' + esc(p.category) + '</span>' : '') +
         '</div><div class="min-w-0 flex-1 flex flex-col justify-between">' +
@@ -648,6 +717,7 @@
     });
     if (v === 'winners') loadWinners();
     if (v === 'prizes') buildPrizeList();
+    if (v === 'wallet') loadActivity();
   }
 
   function confetti() {
@@ -672,9 +742,9 @@
     if (!none) {
       $('winIcon').textContent = ico(p.icon);
       $('winIcon').style.color = c.fg;
-      $('winIcon').classList.toggle('hidden', !!p.image);
-      $('winImg').classList.toggle('hidden', !p.image);
-      if (p.image) $('winImg').src = p.image;
+      $('winIcon').classList.toggle('hidden', !!imgOf(p));
+      $('winImg').classList.toggle('hidden', !imgOf(p));
+      if (imgOf(p)) $('winImg').src = imgOf(p);
       $('winKind').textContent = p.type === 'cash' ? 'Cash prize' : (gain > 0 ? 'Paid out as cash' : 'Prize');
       $('winName').textContent = p.name;
       $('winValue').textContent = p.type !== 'cash' && gain > 0 ? fmt(gain) : valueOf(p);
@@ -799,6 +869,7 @@
         if (gain > 0) pending = { amount: gain, to: cfg.user.balance };
         else { shown = cfg.user.balance; renderBalance(); }
         if (p.type !== 'none') { lastWinState = p.type === 'cash' && gain > 0 ? { gain: gain } : { name: p.name }; renderLastWin(); }
+        logAct(p.type === 'none' ? 'lose' : 'win', (p.type === 'none' ? 'Try Again' : p.name) + (used > 1 ? ' (' + used + 'x)' : ''), gain > 0 ? gain : 0);
         spinning = false;
         setBusy(false);
         showWin(p, gain);
@@ -824,7 +895,7 @@
     if (cfg.user.email) { $('menuSub').textContent = cfg.user.email; $('menuSub').classList.remove('hidden'); }
     base = CURS.indexOf(cfg.currency) >= 0 ? cfg.currency : 'USD';
     cur = base; rates = {}; rates[base] = 1; ratesAt = 0;
-    $('curSel').value = cur;
+    syncSel();
     buildWheel();
     buildBoosts();
     buildPrizeList();
@@ -836,6 +907,9 @@
     showView('spin');
     var sc = null;
     try { sc = localStorage.getItem('wp_cur'); } catch (e) { /* storage blocked */ }
+    if (!API) loadActivityLocal();
+    renderActivity();
+    renderAuth();
     if (sc && sc !== base) setCurrency(sc);
   }
 
@@ -867,6 +941,7 @@
       shown = cfg.user.balance;
       renderBalance();
       buildPrizeList();
+      logAct('claim', p.name, cost);
       toast('Your claim has been received.');
     }).catch(function (err) {
       b.disabled = false;
@@ -916,10 +991,34 @@
   $('menuBackdrop').addEventListener('click', closeMenu);
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
 
-  $('curSel').addEventListener('change', function () {
-    var want = this.value;
-    if (spinning) { this.value = cur; toast('Please wait for the spin to finish.'); return; }
-    setCurrency(want);
+  ['curSel', 'curSel2'].forEach(function (id) {
+    $(id).addEventListener('change', function () {
+      var want = this.value;
+      if (spinning) { syncSel(); toast('Please wait for the spin to finish.'); return; }
+      setCurrency(want);
+    });
+  });
+
+  // Withdraw: behavior to be defined.
+  $('withdrawBtn').addEventListener('click', function () { toast('Withdrawals are coming soon.'); });
+
+  // Menu footer: Sign up for guests, Log out for signed-in users.
+  function isSignedUp() {
+    var u = cfg && cfg.user || {};
+    if (u.signedUp != null) return !!u.signedUp;
+    return !!u.name && u.name !== 'Guest';
+  }
+  function renderAuth() {
+    var on = isSignedUp(), b = $('authBtn');
+    $('authIcon').textContent = on ? 'logout' : 'person_add';
+    $('authLabel').textContent = on ? 'Log out' : 'Sign up';
+    b.className = 'w-full py-3.5 rounded-xl font-extrabold text-sm flex items-center justify-center gap-2 active:scale-[0.98] transition ' +
+      (on ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-fuchsia-600 text-white shadow-lg shadow-blue-600/30');
+  }
+  $('authBtn').addEventListener('click', function () {
+    if (!isSignedUp()) { toast('Sign up is coming soon.'); return; }
+    if (API) api('/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).then(function () { location.reload(); }).catch(function (e) { toast(e.message || 'Something went wrong. Please try again.'); });
+    else toast('Logged out (demo).');
   });
 
   // Ask for more spins. Live mode posts to {API}/spins/request, demo mode just confirms.
@@ -934,6 +1033,7 @@
     call.then(function (res) {
       if (res && res.spinsLeft != null) { cfg.user.spinsLeft = Number(res.spinsLeft); renderSpins(); }
       lab.textContent = 'Request sent';
+      logAct('request', 'Requested more spins', 0);
       toast((res && res.message) || 'Request sent. You will get more spins once it is approved.');
       setTimeout(function () { reqBusy = false; btn.disabled = false; lab.textContent = 'Request more spins'; }, 60000);
     }).catch(function (e) {
