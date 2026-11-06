@@ -81,8 +81,8 @@
 <main class="fixed inset-0 overflow-y-auto overflow-x-hidden" style="overscroll-behavior:contain">
 <div class="w-full max-w-md mx-auto px-4 flex flex-col items-center" style="padding-top:calc(5rem + env(safe-area-inset-top,0px));padding-bottom:calc(7rem + env(safe-area-inset-bottom,0px))">
 
-  <section id="view-spin" class="w-full flex flex-col items-center">
-    <div class="relative w-full flex flex-col items-center justify-center pt-6 pb-2">
+  <section id="view-spin" class="w-full flex flex-col items-center -mt-2">
+    <div class="relative w-full flex flex-col items-center justify-center pt-0 pb-2">
       <div class="relative z-30 flex flex-col items-center drop-shadow-md -mb-3" id="needle">
         <div class="w-5 h-6 bg-rose-500 clip-pointer"></div>
         <div class="w-2.5 h-2.5 rounded-full bg-rose-600 -mt-1 ring-2 ring-white"></div>
@@ -269,14 +269,14 @@
   <div class="px-4 pb-5 flex flex-col gap-2" id="curOptions"></div>
 </div>
 
-<div class="fixed left-0 right-0 top-0 z-[59] flex flex-col bg-[#efeae2] translate-x-full transition-transform duration-300" style="height:100%" id="chatPage" aria-hidden="true">
-  <header class="bg-[#008069] text-white flex items-center gap-2 px-2 pt-safe shrink-0">
-    <div class="flex items-center gap-2 w-full h-14">
-      <button id="chatBack" aria-label="Back" class="w-10 h-10 rounded-full flex items-center justify-center active:bg-white/15"><span class="material-symbols-outlined">arrow_back</span></button>
-      <div class="w-10 h-10 rounded-full bg-white text-[#008069] flex items-center justify-center shrink-0"><span class="material-symbols-outlined">support_agent</span></div>
-      <div class="min-w-0 flex-1 ml-0.5">
-        <div class="text-base font-bold leading-tight truncate">Winprizez Support</div>
-        <div class="text-xs text-white/80 leading-tight" id="chatStatus">online</div>
+<div class="fixed left-0 right-0 top-0 z-[59] flex flex-col bg-[#eef0fb] translate-x-full transition-transform duration-300" style="height:100%" id="chatPage" aria-hidden="true">
+  <header class="bg-white/95 border-b border-[#eaedff] pt-safe shrink-0">
+    <div class="h-16 px-3 flex items-center gap-2">
+      <button id="chatBack" aria-label="Back" class="w-9 h-9 shrink-0 rounded-full bg-slate-50 border border-slate-200/80 text-slate-600 flex items-center justify-center active:scale-95"><span class="material-symbols-outlined text-xl">arrow_back</span></button>
+      <div class="w-9 h-9 shrink-0 rounded-xl bg-blue-600 flex items-center justify-center text-white"><span class="material-symbols-outlined text-xl">support_agent</span></div>
+      <div class="min-w-0 flex-1">
+        <div class="font-extrabold text-base tracking-tight uppercase truncate leading-tight">Winprizez Support</div>
+        <div class="text-xs text-slate-500 leading-tight" id="chatStatus">online</div>
       </div>
     </div>
   </header>
@@ -286,7 +286,7 @@
     <div class="flex-1 bg-white rounded-3xl px-4 py-2.5 shadow-sm">
       <textarea id="chatInput" rows="1" placeholder="Message" class="select-text w-full text-base leading-snug outline-none resize-none bg-transparent block" style="max-height:112px"></textarea>
     </div>
-    <button id="chatSend" aria-label="Send" class="w-11 h-11 rounded-full bg-[#00a884] text-white flex items-center justify-center shrink-0 active:scale-95 transition"><span class="material-symbols-outlined">send</span></button>
+    <button id="chatSend" aria-label="Send" class="w-11 h-11 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/30 flex items-center justify-center shrink-0 active:scale-95 transition"><span class="material-symbols-outlined">send</span></button>
   </div>
 </div>
 
@@ -1160,7 +1160,7 @@
     chat.forEach(function (m) {
       var d = dayLabel(m.time), me = m.from === 'user';
       if (d !== last) { out += '<div class="self-center my-1.5 px-3 py-1 rounded-lg bg-[#e1f2fb] text-[11px] text-slate-600 font-semibold shadow-sm">' + esc(d) + '</div>'; last = d; }
-      out += '<div class="max-w-[82%] px-2.5 py-1.5 rounded-lg shadow-sm text-[14.5px] leading-snug break-words ' + (me ? 'self-end bg-[#d9fdd3] rounded-tr-none' : 'self-start bg-white rounded-tl-none') + (m.id === chatNewId ? ' bubble-in' : '') + '">' +
+      out += '<div class="max-w-[82%] px-2.5 py-1.5 rounded-lg shadow-sm text-[14.5px] leading-snug break-words ' + (me ? 'self-end bg-[#dbe7ff] rounded-tr-none' : 'self-start bg-white rounded-tl-none') + (m.id === chatNewId ? ' bubble-in' : '') + '">' +
         esc(m.text).replace(/\n/g, '<br>') +
         '<span class="float-right ml-3 mt-2 text-[10px] text-slate-500 inline-flex items-center gap-0.5">' + clockOf(m.time) +
         (me ? '<span class="material-symbols-outlined text-[15px] text-[#8696a0]">done_all</span>' : '') + '</span></div>';
@@ -1176,7 +1176,7 @@
 
   function buildChips() {
     $('chatChips').innerHTML = CHIPS.map(function (c) {
-      return '<button class="chat-chip shrink-0 px-3.5 py-2 rounded-full bg-white border border-[#d1d7db] text-[#008069] text-[13px] font-bold shadow-sm active:scale-95 transition">' + esc(c) + '</button>';
+      return '<button class="chat-chip shrink-0 px-3.5 py-2 rounded-full bg-white border border-blue-200 text-blue-600 text-[13px] font-bold shadow-sm active:scale-95 transition">' + esc(c) + '</button>';
     }).join('');
   }
 
@@ -1281,8 +1281,8 @@
   $('chatBack').addEventListener('click', function () { closeChat(); });
 
   // Every Contact Support button opens the chat, with a ready-to-send first message where it makes sense.
-  $('winSupport').addEventListener('click', function () { openChat(winDraft); });
-  $('actSupport').addEventListener('click', function () { openChat('Hi, I need an activation pin to get more spins.'); });
+  $('winSupport').addEventListener('click', function () { closeWin(); openChat(winDraft); });
+  $('actSupport').addEventListener('click', function () { closeActivation(); openChat('Hi, I need an activation pin to get more spins.'); });
   $('menuSupport').addEventListener('click', function () { openChat(''); });
 
   // Activation key. Live mode posts { key } to {API}/activate and expects { spinsLeft }.
@@ -1352,6 +1352,7 @@
       (on ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-gradient-to-r from-blue-600 via-indigo-600 to-fuchsia-600 text-white shadow-lg shadow-blue-600/30');
   }
   $('authBtn').addEventListener('click', function () {
+    closeMenu();
     if (!isSignedUp()) { toast('Sign up is coming soon.'); return; }
     if (API) api('/logout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }).then(function () { location.reload(); }).catch(function (e) { toast(e.message || 'Something went wrong. Please try again.'); });
     else toast('Logged out (demo).');
