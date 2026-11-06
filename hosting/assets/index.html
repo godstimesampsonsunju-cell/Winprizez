@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  html, body { margin: 0; background: #faf8ff; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #faf8ff; touch-action: pan-y; }
   body { font-family: 'Plus Jakarta Sans', sans-serif; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
   .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
   .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
@@ -24,27 +24,29 @@
   .animate-modal-pop { animation: modalSpring 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 </style>
 </head>
-<body class="text-[#131b2e] flex flex-col min-h-screen antialiased select-none">
+<body class="text-[#131b2e] antialiased select-none">
 
 <header class="fixed top-0 w-full z-40 pt-safe bg-white/95 backdrop-blur-md border-b border-[#eaedff]">
-  <div class="h-16 px-4 flex items-center justify-between">
-    <div class="flex items-center gap-2">
-      <div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white">
+  <div class="h-16 px-4 flex items-center justify-between gap-2">
+    <div class="flex items-center gap-2 min-w-0">
+      <div class="w-9 h-9 shrink-0 rounded-xl bg-blue-600 flex items-center justify-center text-white">
         <span class="material-symbols-outlined text-xl">casino</span>
       </div>
-      <span class="font-extrabold text-base tracking-tight uppercase" id="appTitle">Winprizez</span>
+      <span class="font-extrabold text-base tracking-tight uppercase truncate" id="appTitle">Winprizez</span>
     </div>
-    <div class="flex items-center gap-2">
-      <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200/80">
+    <div class="flex items-center gap-2 shrink-0">
+      <div id="balancePill" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200/80">
         <span class="material-symbols-outlined text-amber-500 text-base leading-none">account_balance_wallet</span>
         <span class="mono text-xs font-bold" id="balance">0</span>
       </div>
-      <div class="w-9 h-9 rounded-full bg-blue-50 ring-2 ring-blue-600/20 flex items-center justify-center text-blue-700 font-extrabold text-sm" id="avatar">G</div>
+      <button id="soundBtn" aria-label="Sound" class="w-9 h-9 shrink-0 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-600"><span class="material-symbols-outlined text-lg" id="soundIcon">volume_up</span></button>
+      <div class="w-9 h-9 shrink-0 rounded-full bg-blue-50 ring-2 ring-blue-600/20 flex items-center justify-center text-blue-700 font-extrabold text-sm" id="avatar">G</div>
     </div>
   </div>
 </header>
 
-<main class="flex flex-col items-center flex-1 w-full max-w-md mx-auto pt-20 pb-28 px-4">
+<main class="fixed inset-0 overflow-y-auto overflow-x-hidden" style="overscroll-behavior:contain">
+<div class="w-full max-w-md mx-auto px-4 flex flex-col items-center" style="padding-top:calc(5rem + env(safe-area-inset-top,0px));padding-bottom:calc(7rem + env(safe-area-inset-bottom,0px))">
 
   <section id="view-spin" class="w-full flex flex-col items-center">
     <div class="relative w-full flex flex-col items-center justify-center pt-6 pb-2">
@@ -112,6 +114,7 @@
   </section>
 
   <p class="hidden text-sm text-slate-500 text-center mt-10" id="loadError">We could not load the game. Please refresh the page.</p>
+</div>
 </main>
 
 <div class="fixed left-1/2 -translate-x-1/2 bottom-24 z-[60] max-w-[88vw] px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold text-center transition-opacity duration-300 opacity-0 pointer-events-none" id="toast"></div>
@@ -172,12 +175,12 @@
     boosts: [1, 2, 5, 10],
     user: { name: 'Guest', balance: 5000 },
     prizes: [
-      { id: 'p1', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 1000, weight: 2 },
-      { id: 'p2', name: 'Smartphone', icon: 'smartphone', type: 'item', value: '', weight: 1 },
+      { id: 'p1', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 1000, badge: 'Instant Payout', category: 'Direct', weight: 2 },
+      { id: 'p2', name: 'Smartphone', icon: 'smartphone', type: 'item', worth: 600, badge: 'Tech Favorite', category: 'Tech', cashOut: 500, weight: 1 },
       { id: 'p3', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 200, weight: 6 },
       { id: 'p4', name: 'Try Again', label: 'Try Again', icon: 'refresh', type: 'none', weight: 8 },
       { id: 'p5', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 500, weight: 4 },
-      { id: 'p6', name: 'Gift Box', icon: 'card_giftcard', type: 'item', value: '', weight: 2 },
+      { id: 'p6', name: 'Gift Box', icon: 'card_giftcard', type: 'item', worth: 150, badge: 'Surprise', category: 'Gifts', cashOut: 120, weight: 2 },
       { id: 'p7', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 100, weight: 8 },
       { id: 'p8', name: 'Try Again', label: 'Try Again', icon: 'refresh', type: 'none', weight: 8 }
     ]
@@ -198,7 +201,107 @@
   };
   var ico = function (s) { return /^[a-z0-9_]+$/.test(s || '') ? s : 'redeem'; };
 
-  var cfg = null, rotation = 0, spinning = false, boost = 1;
+  var cfg = null, rotation = 0, spinning = false, boost = 1, shown = 0, pending = null, wTab = 'live', wData = { list: [], standing: null };
+
+  var AC = null, soundOn = true, bufs = {}, spinSrc = null;
+  // Real recorded sounds, kept in the sounds folder next to index.html. If a file is missing or does not load, a built-in sound is used instead.
+  var SOUNDS = { spin: 'sounds/spin.mp3', win: 'sounds/win.mp3', lose: 'sounds/lose.mp3', coin: 'sounds/coin.mp3' };
+  try { soundOn = localStorage.getItem('wp_sound') !== '0'; } catch (e) { /* storage blocked */ }
+  function audio() {
+    if (!AC) { var C = window.AudioContext || window.webkitAudioContext; if (C) AC = new C(); }
+    if (AC && AC.state === 'suspended') AC.resume();
+    return AC;
+  }
+  function loadSounds() {
+    var a = audio();
+    if (!a) return;
+    Object.keys(SOUNDS).forEach(function (k) {
+      fetch(SOUNDS[k]).then(function (r) { if (!r.ok) throw new Error('missing'); return r.arrayBuffer(); })
+        .then(function (d) { return new Promise(function (ok, no) { a.decodeAudioData(d, ok, no); }); })
+        .then(function (buf) { bufs[k] = buf; })
+        .catch(function () { /* file not added yet */ });
+    });
+  }
+  function play(k, rate, vol) {
+    var a = soundOn && audio();
+    if (!a || !bufs[k]) return null;
+    var src = a.createBufferSource(), g = a.createGain();
+    src.buffer = bufs[k];
+    src.playbackRate.value = rate || 1;
+    g.gain.value = vol == null ? 1 : vol;
+    src.connect(g); g.connect(a.destination);
+    src.start();
+    src.out = g;
+    return src;
+  }
+  // Fallback sounds made in the browser. Used whenever a recorded file is missing or has not loaded yet.
+  function tone(f, t0, d, type, vol) {
+    var a = soundOn && audio();
+    if (!a) return;
+    var o = a.createOscillator(), g = a.createGain(), t = a.currentTime + t0;
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g); g.connect(a.destination);
+    o.start(t); o.stop(t + d + 0.05);
+  }
+  var clickBuf = null;
+  function click() {
+    var a = soundOn && audio();
+    if (!a) return;
+    if (!clickBuf) {
+      var len = Math.floor(a.sampleRate * 0.03), d;
+      clickBuf = a.createBuffer(1, len, a.sampleRate);
+      d = clickBuf.getChannelData(0);
+      for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+    }
+    var src = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+    src.buffer = clickBuf;
+    f.type = 'bandpass'; f.frequency.value = 1400 + Math.random() * 200; f.Q.value = 1;
+    g.gain.value = 0.45;
+    src.connect(f); f.connect(g); g.connect(a.destination);
+    src.start();
+  }
+  // One soft click per slice passing the pointer, so the clicks slow down as the wheel does.
+  var tickRun = false;
+  function tickLoop(step) {
+    if (!soundOn || typeof getComputedStyle !== 'function') return;
+    var wheel = $('wheel'), prev = null, cum = 0, last = null, lastT = 0;
+    tickRun = true;
+    (function frame(now) {
+      if (!tickRun) return;
+      var m = getComputedStyle(wheel).transform.match(/matrix\(([^)]+)\)/);
+      if (m) {
+        var v = m[1].split(','), ang = Math.atan2(parseFloat(v[1]), parseFloat(v[0])) * 180 / Math.PI;
+        if (ang < 0) ang += 360;
+        if (prev !== null) cum += (ang - prev + 540) % 360 - 180;
+        prev = ang;
+        var k = Math.floor((cum + step / 2) / step);
+        if (last === null) last = k;
+        if (k !== last) { last = k; if (now - lastT > 75) { lastT = now; click(); tone(240, 0, 0.06, 'sine', 0.07); } }
+      }
+      requestAnimationFrame(frame);
+    })(performance.now());
+  }
+  var synth = {
+    win: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * 0.11, 0.35, 'triangle', 0.2); }); tone(1319, 0.5, 0.5, 'triangle', 0.18); },
+    lose: function () { tone(330, 0, 0.25, 'triangle', 0.16); tone(262, 0.2, 0.25, 'triangle', 0.16); tone(196, 0.4, 0.5, 'triangle', 0.16); },
+    coin: function (i) { var f = 1200 + Math.min(i, 10) * 60; tone(f, 0, 0.12, 'sine', 0.12); tone(f * 1.5, 0.05, 0.14, 'sine', 0.08); }
+  };
+  var sfx = {
+    spin: function (step) { sfx.stopSpin(); spinSrc = play('spin'); if (!spinSrc) tickLoop(step); },
+    stopSpin: function () {
+      tickRun = false;
+      if (!spinSrc || !AC) return;
+      var sn = spinSrc, t = AC.currentTime;
+      spinSrc = null;
+      try { sn.out.gain.setValueAtTime(sn.out.gain.value, t); sn.out.gain.linearRampToValueAtTime(0.0001, t + 0.3); sn.stop(t + 0.35); } catch (e) { /* already stopped */ }
+    },
+    win: function () { if (!play('win')) synth.win(); },
+    lose: function () { if (!play('lose')) synth.lose(); },
+    coin: function (i) { if (!play('coin', 1 + Math.min(i, 10) * 0.03, 0.8)) synth.coin(i); }
+  };
 
   function fmt(n) {
     var v = Number(n) || 0;
@@ -210,8 +313,15 @@
     return v.toLocaleString(undefined, { maximumFractionDigits: 2 });
   }
 
+  // Every win is paid to the balance as cash. Items pay their cashOut value (or worth if cashOut is not set).
+  function creditOf(p) {
+    if (p.type === 'cash') return Number(p.amount) || 0;
+    if (p.type === 'none') return 0;
+    return Number(p.cashOut != null ? p.cashOut : p.worth) || 0;
+  }
+
   function labelOf(p) { return p.label || (p.type === 'cash' ? fmt(p.amount) : p.name); }
-  function valueOf(p) { return p.type === 'cash' ? fmt(p.amount) : (p.value || ''); }
+  function valueOf(p) { return p.type === 'cash' ? fmt(p.amount) : (p.worth != null ? fmt(p.worth) : (p.value || '')); }
 
   var toastTimer;
   function toast(msg) {
@@ -234,7 +344,7 @@
   }
 
   function renderBalance() {
-    var b = fmt(cfg.user.balance);
+    var b = fmt(shown);
     $('balance').textContent = b;
     $('walletBalance').textContent = b;
   }
@@ -287,30 +397,123 @@
     });
   }
 
+  function oddsOf(p) {
+    if (p.odds) return Number(p.odds);
+    var t = cfg.prizes.reduce(function (s, x) { return s + (x.weight || 0); }, 0);
+    return p.weight && t ? Math.round(t / p.weight) : 0;
+  }
+
+  // Each prize can carry: image (URL), category, badge, worth, cashOut, note, odds. All optional.
   function buildPrizeList() {
-    var rows = cfg.prizes.filter(function (p) { return p.type !== 'none'; }).map(function (p, i) {
-      var c = PALETTE[i % PALETTE.length], v = valueOf(p);
-      return '<div class="bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-3">' +
-        '<div class="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style="background:' + c.bg + '">' +
-        '<span class="material-symbols-outlined" style="color:' + c.fg + '">' + ico(p.icon) + '</span></div>' +
-        '<div class="min-w-0 flex-1"><div class="text-sm font-bold truncate">' + esc(p.name) + '</div>' +
-        (v ? '<div class="mono text-xs text-slate-500">' + esc(v) + '</div>' : '') + '</div></div>';
+    var rows = cfg.prizes.filter(function (p) { return p.type !== 'none'; }).map(function (p) {
+      var c = PALETTE[cfg.prizes.indexOf(p) % PALETTE.length], v = valueOf(p), o = oddsOf(p);
+      var cr = creditOf(p), note = p.type !== 'cash' && cr > 0 ? 'Paid as cash: ' + fmt(cr) : (p.note || '');
+      return '<div class="bg-white border border-slate-200/80 rounded-2xl p-3 flex gap-3 shadow-sm">' +
+        '<div class="relative w-24 h-24 shrink-0 rounded-xl overflow-hidden flex items-center justify-center" style="background:' + c.bg + '">' +
+        (p.image ? '<img src="' + esc(p.image) + '" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover">' :
+          '<span class="material-symbols-outlined text-4xl" style="color:' + c.fg + '">' + ico(p.icon) + '</span>') +
+        (p.category ? '<span class="absolute left-1.5 bottom-1.5 px-2 py-0.5 rounded-md bg-white/90 text-[10px] font-bold text-slate-800">' + esc(p.category) + '</span>' : '') +
+        '</div><div class="min-w-0 flex-1 flex flex-col justify-between">' +
+        '<div class="flex items-center justify-between gap-2"><span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase truncate" style="background:' + c.bg + ';color:' + c.fg + '">' + esc(p.badge || (p.type === 'cash' ? 'Cash' : 'Prize')) + '</span>' +
+        (o ? '<span class="mono text-[11px] text-slate-500 shrink-0">1 in ' + o.toLocaleString() + '</span>' : '') + '</div>' +
+        '<div class="text-sm font-extrabold leading-tight mt-1 line-clamp-2">' + esc(p.name) + '</div>' +
+        '<div class="flex items-end justify-between gap-2 mt-1"><span class="mono text-sm font-extrabold ' + (p.type === 'cash' ? 'text-emerald-600' : 'text-blue-700') + '">' + esc(v) + '</span>' +
+        (note ? '<span class="text-[10px] text-slate-500 text-right leading-tight">' + esc(note) + '</span>' : '') + '</div></div></div>';
     });
     $('prizeList').innerHTML = rows.join('') || '<p class="text-sm text-slate-500">No prizes yet.</p>';
   }
 
+  // Sample data for the design preview only. The live Worker must return real winners only.
+  function demoWinners() {
+    var n = Date.now(), m = 60000, h = 3600000;
+    return { list: [
+      { name: '@Alex_C', prize: 'Cash Prize', amount: 1000, tag: 'Direct', time: n - 2 * m, tx: '8497', status: 'Claimed' },
+      { name: '@Sarah_K', prize: 'Smartphone', amount: 600, tag: 'Tech', time: n - 18 * m, tx: '8492', status: 'Claimed' },
+      { name: '@David_M', prize: 'Cash Prize', amount: 500, tag: 'Direct', time: n - 45 * m, tx: '8488', status: 'Claimed' },
+      { name: '@Elena_R', prize: 'Gift Box', amount: 150, tag: 'Gifts', time: n - 3 * h, tx: '8471', status: 'Claimed' },
+      { name: '@Sarah_K', prize: 'Cash Prize', amount: 200, tag: 'Direct', time: n - 5 * h, tx: '8450', status: 'Claimed' }
+    ], standing: { rank: 142, won: 500, spins: 12, note: '' } };
+  }
+
+  function ago(t) {
+    var s = Math.max(0, (Date.now() - t) / 1000);
+    if (s < 60) return 'Just now';
+    if (s < 3600) return Math.floor(s / 60) + 'm ago';
+    if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+    return Math.floor(s / 86400) + 'd ago';
+  }
+
+  function avatarOf(name, size, i) {
+    var c = PALETTE[i % PALETTE.length];
+    return '<div class="rounded-full flex items-center justify-center font-extrabold shrink-0" style="width:' + size + 'px;height:' + size + 'px;background:' + c.bg + ';color:' + c.fg + '">' +
+      esc(String(name || '?').replace('@', '').charAt(0).toUpperCase()) + '</div>';
+  }
+
+  function winRow(w, i) {
+    var amt = Number(w.amount) > 0 ? fmt(w.amount) : '';
+    return '<div class="bg-white border border-slate-200/80 rounded-2xl p-3 flex items-center gap-3">' + avatarOf(w.name, 44, i) +
+      '<div class="min-w-0 flex-1"><div class="flex items-center gap-2"><span class="text-xs font-bold truncate">' + esc(w.name) + '</span>' +
+      (w.tag ? '<span class="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[9px] font-extrabold uppercase shrink-0">' + esc(w.tag) + '</span>' : '') + '</div>' +
+      '<div class="text-sm font-extrabold truncate">' + esc(w.prize) + '</div>' +
+      '<div class="text-[11px] text-slate-500">' + ago(w.time) + (w.tx ? ' &middot; TX #' + esc(w.tx) : '') + '</div></div>' +
+      '<div class="text-right shrink-0"><div class="mono text-sm font-extrabold text-blue-700">' + esc(amt) + '</div>' +
+      (w.status ? '<div class="text-[10px] font-extrabold uppercase text-emerald-600">' + esc(w.status) + '</div>' : '') + '</div></div>';
+  }
+
+  function podium(top) {
+    function card(w, rank, i) {
+      var first = rank === 1, amt = Number(w.amount) > 0 ? fmt(w.amount) : '';
+      return '<div class="flex-1 min-w-0 bg-white rounded-2xl p-2.5 flex flex-col items-center text-center ' + (first ? 'border-2 border-amber-300 -mt-3 pb-3 shadow-md' : 'border border-slate-200/80') + '">' +
+        '<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full mb-1.5 ' + (first ? 'bg-amber-300 text-amber-900' : 'bg-slate-100 text-slate-600') + '">' + (first ? '1ST' : rank) + '</span>' +
+        avatarOf(w.name, first ? 56 : 44, i) +
+        '<div class="text-[11px] font-bold truncate w-full mt-1.5">' + esc(w.name) + '</div>' +
+        '<div class="text-[10px] uppercase tracking-wider text-slate-500 truncate w-full">' + esc(w.prize) + '</div>' +
+        '<div class="mono font-extrabold text-blue-700 ' + (first ? 'text-base' : 'text-sm') + '">' + esc(amt) + '</div>' +
+        '<div class="text-[10px] text-slate-400">' + ago(w.time) + '</div></div>';
+    }
+    var order = [1, 0, 2].filter(function (k) { return top[k]; });
+    return '<div class="flex items-end gap-2 mb-4 pt-3">' + order.map(function (k) { return card(top[k], k + 1, k); }).join('') + '</div>';
+  }
+
+  function renderWinners() {
+    var L = wData.list || [], el = $('winnerList');
+    var tabs = [['live', 'Live Feed'], ['top', 'Top Winners'], ['big', 'Big Wins']];
+    var h = '<div class="flex p-1 bg-slate-100 rounded-full mb-4">' + tabs.map(function (t) {
+      return '<button class="wtab flex-1 py-2 rounded-full text-xs font-bold ' + (wTab === t[0] ? 'bg-blue-600 text-white' : 'text-slate-600') + '" data-tab="' + t[0] + '">' + t[1] + '</button>';
+    }).join('') + '</div>';
+    if (!L.length) { el.innerHTML = h + '<p class="text-sm text-slate-500">Winners will show up here.</p>'; return; }
+    var byAmt = L.slice().sort(function (a, b) { return (b.amount || 0) - (a.amount || 0); });
+    var lab = '<div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">';
+    if (wTab === 'live') {
+      var s = wData.standing;
+      h += lab + 'Top wins</div>' + podium(byAmt.slice(0, 3));
+      if (s) h += '<div class="rounded-2xl p-4 mb-4 flex items-center justify-between gap-3 bg-amber-50 border border-amber-200"><div class="min-w-0">' +
+        '<div class="text-[10px] font-extrabold uppercase tracking-wider text-amber-800">Your standing <span class="ml-1 px-2 py-0.5 rounded-full bg-amber-200">#' + esc(s.rank) + '</span></div>' +
+        '<div class="text-lg font-extrabold mt-1">' + fmt(s.won) + ' won' + (s.spins ? ' &middot; ' + esc(s.spins) + ' spins' : '') + '</div>' +
+        (s.note ? '<div class="text-xs text-slate-600 mt-0.5">' + esc(s.note) + '</div>' : '') + '</div>' +
+        '<button id="standBtn" class="px-4 py-2.5 rounded-full bg-blue-600 text-white text-xs font-extrabold shrink-0">Spin to Climb</button></div>';
+      h += lab + 'Live activity</div><div class="flex flex-col gap-2">' +
+        L.slice().sort(function (a, b) { return b.time - a.time; }).map(winRow).join('') + '</div>';
+    } else if (wTab === 'big') {
+      h += '<div class="flex flex-col gap-2">' + byAmt.map(winRow).join('') + '</div>';
+    } else {
+      var tot = {};
+      L.forEach(function (w) { var t = tot[w.name] || (tot[w.name] = { name: w.name, total: 0, n: 0 }); t.total += Number(w.amount) || 0; t.n++; });
+      h += '<div class="flex flex-col gap-2">' + Object.keys(tot).map(function (k) { return tot[k]; }).sort(function (a, b) { return b.total - a.total; }).map(function (t, i) {
+        return '<div class="bg-white border border-slate-200/80 rounded-2xl p-3 flex items-center gap-3"><span class="mono w-5 text-center text-xs font-extrabold text-slate-400">' + (i + 1) + '</span>' +
+          avatarOf(t.name, 40, i) + '<div class="min-w-0 flex-1"><div class="text-sm font-bold truncate">' + esc(t.name) + '</div><div class="text-[11px] text-slate-500">' + t.n + (t.n === 1 ? ' win' : ' wins') + '</div></div>' +
+          '<div class="mono text-sm font-extrabold text-blue-700 shrink-0">' + esc(fmt(t.total)) + '</div></div>';
+      }).join('') + '</div>';
+    }
+    el.innerHTML = h;
+  }
+
   function loadWinners() {
-    var el = $('winnerList');
-    var empty = '<p class="text-sm text-slate-500">Winners will show up here.</p>';
-    if (!API) { el.innerHTML = empty; return; }
+    if (!API) { renderWinners(); return; }
     api('/winners').then(function (d) {
-      var list = d.winners || [];
-      el.innerHTML = list.length ? list.map(function (w) {
-        return '<div class="bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3">' +
-          '<span class="text-sm font-bold truncate">' + esc(w.name) + '</span>' +
-          '<span class="text-xs text-slate-600 truncate">' + esc(w.prize) + '</span></div>';
-      }).join('') : empty;
-    }).catch(function () { el.innerHTML = empty; });
+      wData = { list: d.winners || [], standing: d.standing || null };
+      renderWinners();
+    }).catch(renderWinners);
   }
 
   function showView(v) {
@@ -335,20 +538,21 @@
     box.innerHTML = html;
   }
 
-  function showWin(p) {
+  function showWin(p, gain) {
     var none = p.type === 'none', idx = cfg.prizes.indexOf(p);
+    (none ? sfx.lose : sfx.win)();
     var c = PALETTE[(idx < 0 ? 0 : idx) % PALETTE.length];
-    $('winTitle').textContent = none ? 'Not this time' : (p.type === 'cash' ? fmt(p.amount) : p.name);
+    $('winTitle').textContent = none ? 'Not this time' : (p.type === 'cash' ? fmt(gain > 0 ? gain : p.amount) : p.name);
     $('winSub').textContent = none ? 'Better luck on the next spin.' :
-      (p.type === 'cash' ? 'Your winnings have been added to your balance.' : 'Congratulations on your win.');
+      (gain > 0 ? (p.type === 'cash' ? 'Your winnings have been added to your balance.' : 'Its cash value has been added to your balance.') : 'Congratulations on your win.');
     $('winBadgeIcon').textContent = none ? 'sentiment_neutral' : 'trophy';
     $('winPrize').classList.toggle('hidden', none);
     if (!none) {
       $('winIcon').textContent = ico(p.icon);
       $('winIcon').style.color = c.fg;
-      $('winKind').textContent = p.type === 'cash' ? 'Cash prize' : 'Prize';
+      $('winKind').textContent = p.type === 'cash' ? 'Cash prize' : (gain > 0 ? 'Paid out as cash' : 'Prize');
       $('winName').textContent = p.name;
-      $('winValue').textContent = valueOf(p);
+      $('winValue').textContent = p.type !== 'cash' && gain > 0 ? fmt(gain) : valueOf(p);
       confetti();
     } else {
       $('confetti').innerHTML = '';
@@ -363,6 +567,50 @@
     $('winCard').classList.remove('animate-modal-pop');
     $('winCard').classList.add('scale-90');
     $('confetti').innerHTML = '';
+  }
+
+  function bump() {
+    $('balancePill').animate([{ transform: 'scale(1)' }, { transform: 'scale(1.14)' }, { transform: 'scale(1)' }], { duration: 220 });
+  }
+
+  // Coins fly from the prize to the balance, and the balance counts up as each one lands.
+  function collect(from) {
+    var pd = pending;
+    pending = null;
+    if (!pd) return Promise.resolve();
+    var pr = $('balancePill').getBoundingClientRect();
+    var ex = pr.left + pr.width / 2, ey = pr.top + pr.height / 2;
+    var sx = from.left + from.width / 2, sy = from.top + from.height / 2;
+    var n = 10, part = pd.amount / n, done = 0;
+    return new Promise(function (resolve) {
+      function fly(i) {
+        var c = document.createElement('div');
+        c.style.cssText = 'position:fixed;left:-11px;top:-11px;width:22px;height:22px;border-radius:50%;z-index:80;pointer-events:none;background:radial-gradient(circle at 35% 30%,#fde68a,#f59e0b);border:2px solid #d97706;box-shadow:0 2px 6px rgba(0,0,0,.25)';
+        document.body.appendChild(c);
+        var jx = (Math.random() - 0.5) * 90, jy = (Math.random() - 0.5) * 50;
+        var an = c.animate([
+          { transform: 'translate(' + (sx + jx) + 'px,' + (sy + jy) + 'px) scale(.4)', opacity: 0 },
+          { transform: 'translate(' + (sx + jx * 1.4) + 'px,' + (sy + jy - 50) + 'px) scale(1)', opacity: 1, offset: 0.25 },
+          { transform: 'translate(' + ex + 'px,' + ey + 'px) scale(.45)', opacity: 0.95 }
+        ], { duration: 700, delay: i * 80, easing: 'cubic-bezier(.45,0,.75,.35)', fill: 'both' });
+        an.onfinish = function () {
+          c.remove();
+          done++;
+          shown = done === n ? pd.to : shown + part;
+          renderBalance();
+          bump();
+          sfx.coin(done);
+          if (done === n) resolve();
+        };
+      }
+      for (var i = 0; i < n; i++) fly(i);
+    });
+  }
+
+  function closeWin(next) {
+    var from = $('winIcon').getBoundingClientRect();
+    hideWin();
+    collect(from).then(function () { if (next) next(); });
   }
 
   function setBusy(on) {
@@ -386,7 +634,7 @@
       r -= (cfg.prizes[i].weight || 1);
       if (r < 0) { pick = cfg.prizes[i]; break; }
     }
-    var bal = cfg.user.balance - cfg.spinPrice * boost + (pick.type === 'cash' ? Number(pick.amount) || 0 : 0);
+    var bal = cfg.user.balance - cfg.spinPrice * boost + creditOf(pick);
     return Promise.resolve({ prizeId: pick.id, balance: bal });
   }
 
@@ -396,6 +644,10 @@
       toast('Your balance is too low for this spin. Please top up your wallet.');
       return;
     }
+    audio();
+    var before = cfg.user.balance;
+    shown = before - cfg.spinPrice * boost;
+    renderBalance();
     spinning = true;
     setBusy(true);
     requestSpin().then(function (res) {
@@ -411,17 +663,24 @@
       wheel.style.transition = 'transform ' + dur + 'ms cubic-bezier(0.12, 0.94, 0.22, 1)';
       wheel.style.transform = 'rotate(' + rotation + 'deg)';
       needle.classList.add('needle-ticking');
+      sfx.spin(step);
       setTimeout(function () { needle.classList.remove('needle-ticking'); }, dur - 300);
       setTimeout(function () {
+        sfx.stopSpin();
         var p = cfg.prizes[idx];
         cfg.user.balance = Number(res.balance);
-        renderBalance();
-        if (p.type !== 'none') $('lastWin').textContent = p.type === 'cash' ? fmt(p.amount) : p.name;
+        var gain = cfg.user.balance - shown;
+        if (gain > 0) pending = { amount: gain, to: cfg.user.balance };
+        else { shown = cfg.user.balance; renderBalance(); }
+        if (p.type !== 'none') $('lastWin').textContent = p.type === 'cash' && gain > 0 ? fmt(gain) : p.name;
         spinning = false;
         setBusy(false);
-        showWin(p);
+        showWin(p, gain);
       }, dur + 180);
     }).catch(function (e) {
+      sfx.stopSpin();
+      shown = before;
+      renderBalance();
       spinning = false;
       setBusy(false);
       toast(e.message || 'Something went wrong. Please try again.');
@@ -438,6 +697,8 @@
     buildWheel();
     buildBoosts();
     buildPrizeList();
+    shown = cfg.user.balance;
+    if (!API) wData = demoWinners();
     renderBalance();
     renderCost();
     $('spinBtn').disabled = false;
@@ -445,15 +706,29 @@
   }
 
   $('spinBtn').addEventListener('click', spin);
-  $('winDone').addEventListener('click', hideWin);
-  $('winClose').addEventListener('click', hideWin);
-  $('winAgain').addEventListener('click', function () { hideWin(); setTimeout(spin, 250); });
-  $('winBackdrop').addEventListener('click', function (e) { if (e.target === $('winBackdrop')) hideWin(); });
+  $('winDone').addEventListener('click', function () { closeWin(); });
+  $('winClose').addEventListener('click', function () { closeWin(); });
+  $('winAgain').addEventListener('click', function () { closeWin(spin); });
+  $('winBackdrop').addEventListener('click', function (e) { if (e.target === $('winBackdrop')) closeWin(); });
+  $('winnerList').addEventListener('click', function (e) {
+    var t = e.target.closest('.wtab');
+    if (t) { wTab = t.dataset.tab; renderWinners(); return; }
+    if (e.target.closest('#standBtn')) showView('spin');
+  });
+  function paintSound() { $('soundIcon').textContent = soundOn ? 'volume_up' : 'volume_off'; }
+  $('soundBtn').addEventListener('click', function () {
+    soundOn = !soundOn;
+    try { localStorage.setItem('wp_sound', soundOn ? '1' : '0'); } catch (e) { /* storage blocked */ }
+    paintSound();
+    if (soundOn) { audio(); sfx.coin(0); } else sfx.stopSpin();
+  });
+  paintSound();
   $('nav').addEventListener('click', function (e) {
     var b = e.target.closest('.nav-btn');
     if (b) showView(b.dataset.view);
   });
 
+  loadSounds();
   var start = API ? api('/config') : Promise.resolve(DEMO_CONFIG);
   start.then(function (c) {
     if (!c || !c.prizes || c.prizes.length < 2) throw new Error('bad config');
