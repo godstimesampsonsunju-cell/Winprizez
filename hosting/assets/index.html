@@ -47,6 +47,12 @@
   #prizeList > *, #winnerList > *, #activityList > * { transition: transform 0.15s ease; }
   #prizeList > *:active, #winnerList > *:active, #activityList > *:active { transform: scale(0.985); }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  @keyframes bubbleIn { from { opacity: 0; transform: translateY(10px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+  .bubble-in { animation: bubbleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+  @keyframes tdot { 0%, 60%, 100% { transform: translateY(0); opacity: 0.5; } 30% { transform: translateY(-4px); opacity: 1; } }
+  .tdot { width: 6px; height: 6px; border-radius: 9999px; background: #8696a0; animation: tdot 1.1s infinite; }
+  .tdot:nth-child(2) { animation-delay: 0.15s; } .tdot:nth-child(3) { animation-delay: 0.3s; }
+  .hide-sb { scrollbar-width: none; } .hide-sb::-webkit-scrollbar { display: none; }
   .animate-modal-pop { animation: modalSpring 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 </style>
 </head>
@@ -62,11 +68,9 @@
     </div>
     <div class="flex items-center gap-1.5 shrink-0">
       <div id="balancePill" class="flex items-center gap-1.5 pl-1 pr-3 py-1 rounded-full bg-slate-50 border border-slate-200/80">
-        <select id="curSel" aria-label="Currency" class="mono text-sm font-extrabold text-blue-700 bg-white border border-slate-200 rounded-full pl-2 pr-1 py-0.5 outline-none">
-          <option value="USD">$</option>
-          <option value="EUR">€</option>
-          <option value="GBP">£</option>
-        </select>
+        <button id="curBtn" aria-label="Change currency" class="mono flex items-center pl-2.5 pr-1 py-0.5 rounded-full bg-white border border-slate-200 text-sm font-extrabold text-blue-700 active:scale-95 transition">
+          <span id="curSym">$</span><span class="material-symbols-outlined text-lg">expand_more</span>
+        </button>
         <span class="mono text-xs font-bold" id="balance">0</span>
       </div>
       <button id="menuBtn" aria-label="Menu" class="w-9 h-9 shrink-0 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-600 active:scale-95"><span class="material-symbols-outlined text-xl">more_vert</span></button>
@@ -152,12 +156,10 @@
       </div>
       <div class="flex items-end justify-between gap-3 mt-4">
         <div>
-          <label for="curSel2" class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Currency</label>
-          <select id="curSel2" class="mono text-sm font-extrabold text-blue-700 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 outline-none">
-            <option value="USD">$ USD</option>
-            <option value="EUR">€ EUR</option>
-            <option value="GBP">£ GBP</option>
-          </select>
+          <div class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">Currency</div>
+          <button id="curBtn2" class="mono flex items-center gap-1 pl-3 pr-2 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm font-extrabold text-blue-700 active:scale-95 transition">
+            <span id="curLabel2">$ USD</span><span class="material-symbols-outlined text-xl">expand_more</span>
+          </button>
         </div>
         <img src="img/cash.webp" alt="" class="floaty w-24 h-auto object-contain" draggable="false">
       </div>
@@ -187,6 +189,11 @@
       <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-xl" id="soundIcon">volume_up</span></span>
       <span class="flex-1 text-sm font-bold">Sound</span>
       <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase" id="soundState">On</span>
+    </button>
+    <button id="menuSupport" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl active:bg-slate-50 text-left">
+      <span class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-xl">support_agent</span></span>
+      <span class="flex-1 text-sm font-bold">Contact Support</span>
+      <span class="material-symbols-outlined text-slate-400">chevron_right</span>
     </button>
   </div>
   <div class="p-3 border-t border-slate-100 shrink-0">
@@ -249,6 +256,40 @@
   </div>
 </div>
 
+<div class="fixed inset-0 z-[57] bg-slate-950/50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none" id="curBackdrop"></div>
+<div class="fixed left-0 right-0 bottom-0 z-[57] bg-white rounded-t-3xl shadow-2xl translate-y-full transition-transform duration-300 pb-safe" id="curSheet" role="dialog" aria-label="Select currency" aria-hidden="true">
+  <div class="pt-3 flex justify-center"><div class="w-10 h-1.5 rounded-full bg-slate-200"></div></div>
+  <div class="px-5 pt-3 pb-3 flex items-start justify-between gap-3">
+    <div>
+      <h3 class="text-lg font-black tracking-tight">Select currency</h3>
+      <p class="text-xs text-slate-500 mt-0.5">Your balance and prizes are shown in this currency. Rates update live.</p>
+    </div>
+    <button id="curClose" aria-label="Close" class="w-8 h-8 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-95"><span class="material-symbols-outlined text-lg">close</span></button>
+  </div>
+  <div class="px-4 pb-5 flex flex-col gap-2" id="curOptions"></div>
+</div>
+
+<div class="fixed left-0 right-0 top-0 z-[59] flex flex-col bg-[#efeae2] translate-x-full transition-transform duration-300" style="height:100%" id="chatPage" aria-hidden="true">
+  <header class="bg-[#008069] text-white flex items-center gap-2 px-2 pt-safe shrink-0">
+    <div class="flex items-center gap-2 w-full h-14">
+      <button id="chatBack" aria-label="Back" class="w-10 h-10 rounded-full flex items-center justify-center active:bg-white/15"><span class="material-symbols-outlined">arrow_back</span></button>
+      <div class="w-10 h-10 rounded-full bg-white text-[#008069] flex items-center justify-center shrink-0"><span class="material-symbols-outlined">support_agent</span></div>
+      <div class="min-w-0 flex-1 ml-0.5">
+        <div class="text-base font-bold leading-tight truncate">Winprizez Support</div>
+        <div class="text-xs text-white/80 leading-tight" id="chatStatus">online</div>
+      </div>
+    </div>
+  </header>
+  <div class="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-1.5 select-text" id="chatMsgs" style="background-image: radial-gradient(rgba(0,0,0,0.045) 1.2px, transparent 1.2px); background-size: 20px 20px;"></div>
+  <div class="px-3 pb-2 flex gap-2 overflow-x-auto hide-sb shrink-0" id="chatChips"></div>
+  <div class="px-2 py-2 flex items-end gap-2 shrink-0 pb-safe">
+    <div class="flex-1 bg-white rounded-3xl px-4 py-2.5 shadow-sm">
+      <textarea id="chatInput" rows="1" placeholder="Message" class="select-text w-full text-base leading-snug outline-none resize-none bg-transparent block" style="max-height:112px"></textarea>
+    </div>
+    <button id="chatSend" aria-label="Send" class="w-11 h-11 rounded-full bg-[#00a884] text-white flex items-center justify-center shrink-0 active:scale-95 transition"><span class="material-symbols-outlined">send</span></button>
+  </div>
+</div>
+
 <nav class="fixed bottom-0 w-full z-40 pb-safe bg-white/95 backdrop-blur-md border-t border-slate-200/80">
   <div class="h-16 max-w-md mx-auto px-6 flex items-center justify-around" id="nav">
     <button class="nav-btn flex flex-col items-center justify-center py-1 px-3" data-view="spin"><span class="material-symbols-outlined text-2xl">casino</span><span class="text-[11px] font-semibold mt-0.5">Spin</span></button>
@@ -272,7 +313,6 @@
     title: 'Winprizez',
     currency: 'USD',
     boosts: [1, 2, 5, 10],
-    supportUrl: '', // e.g. 'https://wa.me/234XXXXXXXXXX' or 'https://t.me/yourname'. Opened by every Contact Support button.
     user: { name: 'Guest', balance: 1000, spinsLeft: 2 },
     prizes: [
       { id: 'p3', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 200, weight: 6 },
@@ -459,8 +499,31 @@
     });
   }
 
-  function syncSel() { $('curSel').value = cur; $('curSel2').value = cur; }
-  function curBusy(on) { $('curSel').disabled = on; $('curSel2').disabled = on; }
+  function syncSel() { $('curSym').textContent = SYM[cur]; $('curLabel2').textContent = SYM[cur] + ' ' + cur; buildCurSheet(); }
+  function curBusy(on) { $('curBtn').disabled = on; $('curBtn2').disabled = on; }
+
+  var CUR_NAME = { USD: 'US Dollar', EUR: 'Euro', GBP: 'British Pound' };
+  function buildCurSheet() {
+    $('curOptions').innerHTML = CURS.map(function (c) {
+      var on = c === cur;
+      return '<button class="cur-opt w-full flex items-center gap-3 p-3 rounded-2xl border-2 transition active:scale-[0.99] ' + (on ? 'border-blue-600 bg-blue-50' : 'border-transparent bg-slate-50') + '" data-cur="' + c + '">' +
+        '<span class="w-11 h-11 rounded-full flex items-center justify-center text-xl font-black ' + (on ? 'bg-blue-600 text-white' : 'bg-white text-blue-700 border border-slate-200') + '">' + SYM[c] + '</span>' +
+        '<span class="flex-1 text-left"><span class="block text-sm font-extrabold">' + CUR_NAME[c] + '</span><span class="block text-xs text-slate-500">' + c + '</span></span>' +
+        '<span class="material-symbols-outlined ' + (on ? 'text-blue-600' : 'text-slate-300') + '">' + (on ? 'check_circle' : 'radio_button_unchecked') + '</span></button>';
+    }).join('');
+  }
+  function openCurSheet() {
+    if (spinning) { toast('Please wait for the spin to finish.'); return; }
+    buildCurSheet();
+    $('curSheet').classList.remove('translate-y-full');
+    $('curSheet').setAttribute('aria-hidden', 'false');
+    $('curBackdrop').classList.remove('opacity-0', 'pointer-events-none');
+  }
+  function closeCurSheet() {
+    $('curSheet').classList.add('translate-y-full');
+    $('curSheet').setAttribute('aria-hidden', 'true');
+    $('curBackdrop').classList.add('opacity-0', 'pointer-events-none');
+  }
 
   function afterCurrency() {
     syncSel();
@@ -797,6 +860,7 @@
     $('winTitle').textContent = none ? 'Not this time' : 'CONGRATULATIONS';
     $('winWon').textContent = none ? '' : 'You have won ' + (p.type === 'cash' ? fmt(gain > 0 ? gain : p.amount) : p.name);
     $('winWon').classList.toggle('hidden', none);
+    winDraft = none ? '' : 'Hi, I won ' + (p.type === 'cash' ? fmt(gain > 0 ? gain : p.amount) : p.name) + ' and would like to claim my winning.';
     $('winSupport').classList.toggle('hidden', none);
     $('winSub').textContent = none ? 'Better luck on the next spin.' : 'Kindly contact support and claim your winning.';
     $('winBadgeIcon').textContent = none ? 'sentiment_neutral' : 'trophy';
@@ -1051,23 +1115,175 @@
   $('menuBtn').addEventListener('click', openMenu);
   $('menuClose').addEventListener('click', closeMenu);
   $('menuBackdrop').addEventListener('click', closeMenu);
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeMenu(); closeActivation(); } });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeMenu(); closeActivation(); closeCurSheet(); closeChat(); } });
 
-  ['curSel', 'curSel2'].forEach(function (id) {
-    $(id).addEventListener('change', function () {
-      var want = this.value;
-      if (spinning) { syncSel(); toast('Please wait for the spin to finish.'); return; }
-      setCurrency(want);
-    });
+  $('curBtn').addEventListener('click', openCurSheet);
+  $('curBtn2').addEventListener('click', openCurSheet);
+  $('curClose').addEventListener('click', closeCurSheet);
+  $('curBackdrop').addEventListener('click', closeCurSheet);
+  $('curOptions').addEventListener('click', function (e) {
+    var b = e.target.closest('.cur-opt');
+    if (!b) return;
+    closeCurSheet();
+    if (b.dataset.cur !== cur) setCurrency(b.dataset.cur);
   });
 
-  // Contact support: opens cfg.supportUrl (WhatsApp, Telegram, email link ...).
-  function contactSupport() {
-    if (cfg && cfg.supportUrl) window.open(cfg.supportUrl, '_blank', 'noopener');
-    else toast('Support contact is not set up yet.');
+  // ---------- Support chat (WhatsApp style) ----------
+  // Live mode:  GET {API}/support/messages -> { messages: [{ id, from: 'user'|'support', text, time }] }
+  //             POST {API}/support/messages { text } sends a message.  The page polls every 5 seconds while open.
+  // Demo mode:  messages are kept in this browser and a canned auto-reply is shown (placeholder only).
+  var chatLastDraft = '', chat = [], chatOpen = false, chatTyping = false, chatNewId = null, chatTimer = null, winDraft = '';
+  var CHIPS = ['Claim my winning', 'Get an activation pin', 'Withdrawal help', 'Something else'];
+
+  function chatLoadLocal() {
+    try { chat = JSON.parse(localStorage.getItem('wp_chat') || '[]'); } catch (e) { chat = []; }
+    if (!Array.isArray(chat)) chat = [];
   }
-  $('winSupport').addEventListener('click', contactSupport);
-  $('actSupport').addEventListener('click', contactSupport);
+  function chatSaveLocal() {
+    if (API) return;
+    try { localStorage.setItem('wp_chat', JSON.stringify(chat.slice(-100))); } catch (e) { /* storage blocked */ }
+  }
+  function chatGreeting() {
+    return { id: 'greet', from: 'support', text: 'Hi \ud83d\udc4b Welcome to Winprizez Support. How can we help you today?', time: Date.now() };
+  }
+  function clockOf(t) { return new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
+  function dayLabel(t) {
+    var d = new Date(t), n = new Date(), y = new Date(Date.now() - 86400000);
+    if (d.toDateString() === n.toDateString()) return 'Today';
+    if (d.toDateString() === y.toDateString()) return 'Yesterday';
+    return d.toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+  function scrollChat() { var el = $('chatMsgs'); el.scrollTop = el.scrollHeight; }
+
+  function renderChat() {
+    var out = '', last = '';
+    chat.forEach(function (m) {
+      var d = dayLabel(m.time), me = m.from === 'user';
+      if (d !== last) { out += '<div class="self-center my-1.5 px-3 py-1 rounded-lg bg-[#e1f2fb] text-[11px] text-slate-600 font-semibold shadow-sm">' + esc(d) + '</div>'; last = d; }
+      out += '<div class="max-w-[82%] px-2.5 py-1.5 rounded-lg shadow-sm text-[14.5px] leading-snug break-words ' + (me ? 'self-end bg-[#d9fdd3] rounded-tr-none' : 'self-start bg-white rounded-tl-none') + (m.id === chatNewId ? ' bubble-in' : '') + '">' +
+        esc(m.text).replace(/\n/g, '<br>') +
+        '<span class="float-right ml-3 mt-2 text-[10px] text-slate-500 inline-flex items-center gap-0.5">' + clockOf(m.time) +
+        (me ? '<span class="material-symbols-outlined text-[15px] text-[#8696a0]">done_all</span>' : '') + '</span></div>';
+    });
+    if (chatTyping) out += '<div class="self-start bg-white rounded-lg rounded-tl-none shadow-sm px-3.5 py-3.5 flex gap-1 bubble-in"><span class="tdot"></span><span class="tdot"></span><span class="tdot"></span></div>';
+    chatNewId = null;
+    $('chatMsgs').innerHTML = out;
+    $('chatStatus').textContent = chatTyping ? 'typing...' : 'online';
+    var hasUser = chat.some(function (m) { return m.from === 'user'; });
+    $('chatChips').classList.toggle('hidden', hasUser);
+    scrollChat();
+  }
+
+  function buildChips() {
+    $('chatChips').innerHTML = CHIPS.map(function (c) {
+      return '<button class="chat-chip shrink-0 px-3.5 py-2 rounded-full bg-white border border-[#d1d7db] text-[#008069] text-[13px] font-bold shadow-sm active:scale-95 transition">' + esc(c) + '</button>';
+    }).join('');
+  }
+
+  function autoGrow() {
+    var t = $('chatInput');
+    t.style.height = 'auto';
+    t.style.height = Math.min(t.scrollHeight, 112) + 'px';
+  }
+
+  // Keep the page above the on-screen keyboard.
+  function fitChat() {
+    var el = $('chatPage'), vv = window.visualViewport;
+    if (vv && chatOpen) { el.style.height = vv.height + 'px'; el.style.top = vv.offsetTop + 'px'; }
+    else { el.style.height = '100%'; el.style.top = '0px'; }
+    scrollChat();
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', fitChat);
+    window.visualViewport.addEventListener('scroll', fitChat);
+  }
+
+  function chatPull() {
+    if (!API) return;
+    api('/support/messages').then(function (d) {
+      var list = (d && d.messages) || [];
+      if (!list.length) list = [chatGreeting()];
+      if (JSON.stringify(list.map(function (m) { return m.id; })) !== JSON.stringify(chat.map(function (m) { return m.id; }))) {
+        chat = list;
+        renderChat();
+      }
+    }).catch(function () { /* keep what we have */ });
+  }
+
+  function openChat(draft) {
+    closeMenu();
+    if (!chat.length) { if (!API) chatLoadLocal(); if (!chat.length) { chat = [chatGreeting()]; chatSaveLocal(); } }
+    buildChips();
+    if (!chatOpen) {
+      chatOpen = true;
+      try { history.pushState({ wpchat: 1 }, ''); } catch (e) { /* ignore */ }
+    }
+    $('chatPage').classList.remove('translate-x-full');
+    $('chatPage').setAttribute('aria-hidden', 'false');
+    // A suggested first message replaces an earlier suggestion, but never text the user typed.
+    var cur0 = $('chatInput').value.trim();
+    if (!cur0 || cur0 === chatLastDraft) { $('chatInput').value = draft || ''; chatLastDraft = draft || ''; }
+    autoGrow();
+    fitChat();
+    renderChat();
+    chatPull();
+    clearInterval(chatTimer);
+    if (API) chatTimer = setInterval(chatPull, 5000);
+  }
+  function closeChat(fromPop) {
+    if (!chatOpen) return;
+    chatOpen = false;
+    clearInterval(chatTimer);
+    $('chatInput').blur();
+    $('chatPage').classList.add('translate-x-full');
+    $('chatPage').setAttribute('aria-hidden', 'true');
+    fitChat();
+    if (!fromPop && history.state && history.state.wpchat) { try { history.back(); } catch (e) { /* ignore */ } }
+  }
+  window.addEventListener('popstate', function () { if (chatOpen) closeChat(true); });
+
+  function demoReply(text) {
+    var t = text.toLowerCase(), reply;
+    if (/claim|won|win|prize/.test(t)) reply = 'Congratulations again! \ud83c\udf89 Please send your username and the prize you won, and an agent will verify and process your claim shortly.';
+    else if (/activation|pin|key|spin/.test(t)) reply = 'Sure. Please send your username and an agent will send your activation pin here shortly.';
+    else if (/withdraw/.test(t)) reply = 'Thanks for asking. An agent will guide you through withdrawals here shortly.';
+    else reply = 'Thanks for reaching out! An agent will reply here shortly.';
+    setTimeout(function () {
+      chatTyping = true; renderChat();
+      setTimeout(function () {
+        chatTyping = false;
+        var m = { id: 's' + Date.now(), from: 'support', text: reply, time: Date.now() };
+        chat.push(m); chatNewId = m.id; chatSaveLocal();
+        if (chatOpen) renderChat();
+      }, 1300);
+    }, 600);
+  }
+
+  function sendChat(text) {
+    text = String(text == null ? $('chatInput').value : text).trim();
+    if (!text) return;
+    $('chatInput').value = '';
+    autoGrow();
+    var m = { id: 'u' + Date.now(), from: 'user', text: text, time: Date.now() };
+    chat.push(m); chatNewId = m.id; chatSaveLocal();
+    renderChat();
+    if (API) api('/support/messages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: text }) }).catch(function (e) { toast((e && e.message) || 'Message not sent. Please try again.'); });
+    else demoReply(text);
+  }
+
+  $('chatSend').addEventListener('click', function () { sendChat(); });
+  $('chatSend').addEventListener('mousedown', function (e) { e.preventDefault(); }); // keep keyboard open
+  $('chatInput').addEventListener('input', autoGrow);
+  $('chatInput').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey && window.matchMedia('(pointer: fine)').matches) { e.preventDefault(); sendChat(); }
+  });
+  $('chatChips').addEventListener('click', function (e) { var b = e.target.closest('.chat-chip'); if (b) sendChat(b.textContent); });
+  $('chatBack').addEventListener('click', function () { closeChat(); });
+
+  // Every Contact Support button opens the chat, with a ready-to-send first message where it makes sense.
+  $('winSupport').addEventListener('click', function () { openChat(winDraft); });
+  $('actSupport').addEventListener('click', function () { openChat('Hi, I need an activation pin to get more spins.'); });
+  $('menuSupport').addEventListener('click', function () { openChat(''); });
 
   // Activation key. Live mode posts { key } to {API}/activate and expects { spinsLeft }.
   // Demo mode accepts the key WINPRIZEZ (5 spins) so the flow can be tried without a server.
