@@ -10,9 +10,6 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   html, body { margin: 0; height: 100%; overflow: hidden; background: #faf8ff; touch-action: pan-y; }
-  /* Bold backdrop behind the wheel on the Spin screen only */
-  html.bg-spin, html.bg-spin body { background: #0b0f2a; }
-  html.bg-spin body { background: radial-gradient(120% 62% at 50% 30%, #6d28d9 0%, #3b1a8f 32%, #1e1b4b 62%, #0b0f2a 100%) fixed; }
   body { font-family: 'Plus Jakarta Sans', sans-serif; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
   .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
   .pt-safe { padding-top: env(safe-area-inset-top, 0px); }
@@ -745,7 +742,6 @@
       b.classList.toggle('text-blue-600', on);
       b.classList.toggle('text-slate-400', !on);
     });
-    document.documentElement.classList.toggle('bg-spin', v === 'spin');
     if (v === 'winners') loadWinners();
     if (v === 'prizes') buildPrizeList();
     if (v === 'wallet') loadActivity();
