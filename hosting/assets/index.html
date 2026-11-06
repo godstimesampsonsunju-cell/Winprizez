@@ -27,20 +27,23 @@
 <body class="text-[#131b2e] antialiased select-none">
 
 <header class="fixed top-0 w-full z-40 pt-safe bg-white/95 backdrop-blur-md border-b border-[#eaedff]">
-  <div class="h-16 px-4 flex items-center justify-between gap-2">
+  <div class="h-16 px-3 flex items-center justify-between gap-2">
     <div class="flex items-center gap-2 min-w-0">
       <div class="w-9 h-9 shrink-0 rounded-xl bg-blue-600 flex items-center justify-center text-white">
         <span class="material-symbols-outlined text-xl">casino</span>
       </div>
       <span class="font-extrabold text-base tracking-tight uppercase truncate" id="appTitle">Winprizez</span>
     </div>
-    <div class="flex items-center gap-2 shrink-0">
-      <div id="balancePill" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200/80">
-        <span class="material-symbols-outlined text-amber-500 text-base leading-none">account_balance_wallet</span>
+    <div class="flex items-center gap-1.5 shrink-0">
+      <div id="balancePill" class="flex items-center gap-1.5 pl-1 pr-3 py-1 rounded-full bg-slate-50 border border-slate-200/80">
+        <select id="curSel" aria-label="Currency" class="mono text-sm font-extrabold text-blue-700 bg-white border border-slate-200 rounded-full pl-2 pr-1 py-0.5 outline-none">
+          <option value="USD">$</option>
+          <option value="EUR">€</option>
+          <option value="GBP">£</option>
+        </select>
         <span class="mono text-xs font-bold" id="balance">0</span>
       </div>
-      <button id="soundBtn" aria-label="Sound" class="w-9 h-9 shrink-0 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-600"><span class="material-symbols-outlined text-lg" id="soundIcon">volume_up</span></button>
-      <div class="w-9 h-9 shrink-0 rounded-full bg-blue-50 ring-2 ring-blue-600/20 flex items-center justify-center text-blue-700 font-extrabold text-sm" id="avatar">G</div>
+      <button id="menuBtn" aria-label="Menu" class="w-9 h-9 shrink-0 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-600 active:scale-95"><span class="material-symbols-outlined text-xl">more_vert</span></button>
     </div>
   </div>
 </header>
@@ -92,6 +95,9 @@
           </div>
         </div>
       </div>
+      <button id="moreSpins" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-fuchsia-600 text-white font-extrabold text-sm shadow-lg shadow-blue-600/30 active:scale-[0.98] transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+        <span class="material-symbols-outlined text-xl">add_circle</span><span id="moreSpinsLabel">Request more spins</span>
+      </button>
     </div>
   </section>
 
@@ -116,6 +122,27 @@
   <p class="hidden text-sm text-slate-500 text-center mt-10" id="loadError">We could not load the game. Please refresh the page.</p>
 </div>
 </main>
+
+<div class="fixed inset-0 z-[55] bg-slate-950/50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none" id="menuBackdrop"></div>
+<aside class="fixed top-0 right-0 bottom-0 z-[56] w-[82vw] max-w-xs bg-white shadow-2xl translate-x-full transition-transform duration-300 flex flex-col pt-safe pb-safe" id="menuPanel" aria-hidden="true">
+  <div class="h-16 px-4 flex items-center justify-between border-b border-slate-100 shrink-0">
+    <span class="font-extrabold text-base">Menu</span>
+    <button id="menuClose" aria-label="Close menu" class="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-95"><span class="material-symbols-outlined text-xl">close</span></button>
+  </div>
+  <div class="px-5 py-6 flex flex-col items-center text-center border-b border-slate-100 shrink-0">
+    <div class="w-20 h-20 rounded-full bg-gradient-to-br from-blue-600 to-fuchsia-600 text-white flex items-center justify-center text-3xl font-extrabold overflow-hidden ring-4 ring-blue-100" id="menuAvatar">G</div>
+    <div class="mt-3 text-base font-extrabold truncate max-w-full" id="menuName">Guest</div>
+    <div class="text-xs text-slate-500 truncate max-w-full hidden" id="menuSub"></div>
+  </div>
+  <div class="p-3 flex flex-col gap-1 overflow-y-auto" id="menuList">
+    <!-- Add future menu rows here, same markup as the Sound row. -->
+    <button id="soundBtn" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl active:bg-slate-50 text-left">
+      <span class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-xl" id="soundIcon">volume_up</span></span>
+      <span class="flex-1 text-sm font-bold">Sound</span>
+      <span class="px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase" id="soundState">On</span>
+    </button>
+  </div>
+</aside>
 
 <div class="fixed left-1/2 -translate-x-1/2 bottom-24 z-[60] max-w-[88vw] px-4 py-2.5 rounded-xl bg-slate-900 text-white text-xs font-semibold text-center transition-opacity duration-300 opacity-0 pointer-events-none" id="toast"></div>
 
@@ -168,7 +195,7 @@
   // prize: { id, name, label?, icon, type: 'cash' | 'item' | 'none', amount?, value?, weight? }
   var DEMO_CONFIG = {
     title: 'Winprizez',
-    currency: '',
+    currency: 'USD',
     boosts: [1, 2, 5, 10],
     user: { name: 'Guest', balance: 1000, spinsLeft: 2 },
     prizes: [
@@ -308,14 +335,84 @@
     coin: function (i) { if (!play('coin', 1 + Math.min(i, 10) * 0.03, 0.8)) synth.coin(i); }
   };
 
-  function fmt(n) {
-    var v = Number(n) || 0;
-    if (cfg && cfg.currency) {
-      try {
-        return new Intl.NumberFormat(undefined, { style: 'currency', currency: cfg.currency, minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(v);
-      } catch (e) { /* fall through to plain number */ }
+  // Currency. Prices and balances are stored in the base currency (cfg.currency, USD by default).
+  // Switching currency only changes how they are shown, using live rates from the open source Frankfurter API.
+  var CURS = ['USD', 'EUR', 'GBP'], SYM = { USD: '$', EUR: '\u20ac', GBP: '\u00a3' };
+  var RATE_API = 'https://api.frankfurter.dev/v2/rate/';
+  var base = 'USD', cur = 'USD', rates = { USD: 1 }, ratesAt = 0, lastWinState = null;
+
+  function conv(n) { return (Number(n) || 0) * (rates[cur] || 1); }
+
+  function fmt(n, whole) {
+    var v = conv(n);
+    try {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: cur, minimumFractionDigits: 0, maximumFractionDigits: whole ? 0 : 2 }).format(v);
+    } catch (e) {
+      return SYM[cur] + v.toLocaleString('en-US', { maximumFractionDigits: whole ? 0 : 2 });
     }
-    return v.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  }
+  function fmtNum(n) { return conv(n).toLocaleString('en-US', { maximumFractionDigits: 2 }); }
+
+  function savedRates() {
+    try {
+      var c = JSON.parse(localStorage.getItem('wp_rates') || 'null');
+      if (c && c.b === base && c.r && Date.now() - c.t < 7 * 86400000) return c;
+    } catch (e) { /* storage blocked */ }
+    return null;
+  }
+
+  function loadRates() {
+    if (ratesAt && Date.now() - ratesAt < 3600000) return Promise.resolve();
+    var others = CURS.filter(function (c) { return c !== base; });
+    return Promise.all(others.map(function (q) {
+      return fetch(RATE_API + base.toLowerCase() + '/' + q.toLowerCase()).then(function (r) {
+        if (!r.ok) throw new Error('rate');
+        return r.json();
+      }).then(function (d) {
+        var v = Number(d && d.rate);
+        if (!(v > 0)) throw new Error('rate');
+        return [q, v];
+      });
+    })).then(function (list) {
+      var r = {};
+      r[base] = 1;
+      list.forEach(function (x) { r[x[0]] = x[1]; });
+      rates = r;
+      ratesAt = Date.now();
+      try { localStorage.setItem('wp_rates', JSON.stringify({ b: base, r: r, t: ratesAt })); } catch (e) { /* storage blocked */ }
+    });
+  }
+
+  function afterCurrency() {
+    $('curSel').value = cur;
+    renderBalance();
+    buildWheel();
+    buildPrizeList();
+    renderWinners();
+    renderLastWin();
+  }
+
+  function setCurrency(code) {
+    if (CURS.indexOf(code) < 0) return Promise.resolve();
+    if (code === base) { cur = code; saveCur(); afterCurrency(); return Promise.resolve(); }
+    $('curSel').disabled = true;
+    return loadRates().catch(function () {
+      var c = savedRates();
+      if (!c) throw new Error('no rates');
+      rates = c.r; ratesAt = c.t;
+      toast('Live rates are unavailable. Using the last saved rates.');
+    }).then(function () {
+      cur = code; saveCur(); afterCurrency();
+    }).catch(function () {
+      $('curSel').value = cur;
+      toast('Could not load exchange rates. Please try again.');
+    }).then(function () { $('curSel').disabled = false; });
+  }
+  function saveCur() { try { localStorage.setItem('wp_cur', cur); } catch (e) { /* storage blocked */ } }
+
+  function renderLastWin() {
+    if (!lastWinState) return;
+    $('lastWin').textContent = lastWinState.gain != null ? fmt(lastWinState.gain) : lastWinState.name;
   }
 
   // Every win is paid to the balance as cash. Items pay their cashOut value (or worth if cashOut is not set).
@@ -325,7 +422,7 @@
     return Number(p.cashOut != null ? p.cashOut : p.worth) || 0;
   }
 
-  function labelOf(p) { return p.label || (p.type === 'cash' ? fmt(p.amount) : p.name); }
+  function labelOf(p) { return p.label || (p.type === 'cash' ? fmt(p.amount, true) : p.name); }
   function valueOf(p) { return p.type === 'cash' ? fmt(p.amount) : (p.worth != null ? fmt(p.worth) : (p.value || '')); }
 
   var toastTimer;
@@ -349,9 +446,8 @@
   }
 
   function renderBalance() {
-    var b = fmt(shown);
-    $('balance').textContent = b;
-    $('walletBalance').textContent = b;
+    $('balance').textContent = fmtNum(shown);
+    $('walletBalance').textContent = fmt(shown);
   }
 
   function renderSpins() {
@@ -407,7 +503,7 @@
         '<span class="material-symbols-outlined text-2xl text-white" style="' + shadow + '">' + ico(p.icon) + '</span>';
       labels += '<div class="absolute inset-0 flex justify-center" style="transform:rotate(' + (i * step) + 'deg)">' +
         '<div class="flex flex-col items-center ' + (p.image ? 'pt-3' : 'pt-4') + ' w-[88px]">' + top +
-        '<span class="text-[10px] uppercase tracking-wider text-white font-black mt-0.5 max-w-full truncate" style="' + shadow + '">' + esc(labelOf(p)) + '</span>' +
+        '<span class="text-[8px] uppercase tracking-wide text-white font-black mt-0.5 max-w-full whitespace-nowrap" style="' + shadow + '">' + esc(labelOf(p)) + '</span>' +
         '</div></div>';
     });
     $('wheelSvg').innerHTML = svg + '</defs>' + body;
@@ -702,7 +798,7 @@
         var gain = cfg.user.balance - shown;
         if (gain > 0) pending = { amount: gain, to: cfg.user.balance };
         else { shown = cfg.user.balance; renderBalance(); }
-        if (p.type !== 'none') $('lastWin').textContent = p.type === 'cash' && gain > 0 ? fmt(gain) : p.name;
+        if (p.type !== 'none') { lastWinState = p.type === 'cash' && gain > 0 ? { gain: gain } : { name: p.name }; renderLastWin(); }
         spinning = false;
         setBusy(false);
         showWin(p, gain);
@@ -723,7 +819,12 @@
     if (!cfg.user) cfg.user = { name: 'Guest', balance: 0, spinsLeft: 0 };
     $('appTitle').textContent = cfg.title || 'Winprizez';
     document.title = cfg.title || 'Winprizez';
-    $('avatar').textContent = (cfg.user.name || 'G').charAt(0).toUpperCase();
+    setAvatar($('menuAvatar'));
+    $('menuName').textContent = cfg.user.name || 'Guest';
+    if (cfg.user.email) { $('menuSub').textContent = cfg.user.email; $('menuSub').classList.remove('hidden'); }
+    base = CURS.indexOf(cfg.currency) >= 0 ? cfg.currency : 'USD';
+    cur = base; rates = {}; rates[base] = 1; ratesAt = 0;
+    $('curSel').value = cur;
     buildWheel();
     buildBoosts();
     buildPrizeList();
@@ -733,6 +834,9 @@
     renderSpins();
     $('spinBtn').disabled = false;
     showView('spin');
+    var sc = null;
+    try { sc = localStorage.getItem('wp_cur'); } catch (e) { /* storage blocked */ }
+    if (sc && sc !== base) setCurrency(sc);
   }
 
   $('spinBtn').addEventListener('click', spin);
@@ -776,7 +880,69 @@
     if (t) { wTab = t.dataset.tab; renderWinners(); return; }
     if (e.target.closest('#standBtn')) showView('spin');
   });
-  function paintSound() { $('soundIcon').textContent = soundOn ? 'volume_up' : 'volume_off'; }
+  function paintSound() {
+    $('soundIcon').textContent = soundOn ? 'volume_up' : 'volume_off';
+    var st = $('soundState');
+    st.textContent = soundOn ? 'On' : 'Off';
+    st.className = 'px-2.5 py-1 rounded-full text-[11px] font-extrabold uppercase ' + (soundOn ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500');
+  }
+
+  // Profile picture: cfg.user.avatar (image URL) if the server sends one, else the first letter of the name.
+  function setAvatar(el) {
+    var u = cfg.user || {};
+    if (u.avatar) {
+      el.textContent = '';
+      var im = document.createElement('img');
+      im.src = u.avatar; im.alt = ''; im.className = 'w-full h-full object-cover';
+      im.onerror = function () { el.textContent = (u.name || 'G').charAt(0).toUpperCase(); };
+      el.appendChild(im);
+    } else {
+      el.textContent = (u.name || 'G').charAt(0).toUpperCase();
+    }
+  }
+
+  function openMenu() {
+    $('menuPanel').classList.remove('translate-x-full');
+    $('menuPanel').setAttribute('aria-hidden', 'false');
+    $('menuBackdrop').classList.remove('opacity-0', 'pointer-events-none');
+  }
+  function closeMenu() {
+    $('menuPanel').classList.add('translate-x-full');
+    $('menuPanel').setAttribute('aria-hidden', 'true');
+    $('menuBackdrop').classList.add('opacity-0', 'pointer-events-none');
+  }
+  $('menuBtn').addEventListener('click', openMenu);
+  $('menuClose').addEventListener('click', closeMenu);
+  $('menuBackdrop').addEventListener('click', closeMenu);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeMenu(); });
+
+  $('curSel').addEventListener('change', function () {
+    var want = this.value;
+    if (spinning) { this.value = cur; toast('Please wait for the spin to finish.'); return; }
+    setCurrency(want);
+  });
+
+  // Ask for more spins. Live mode posts to {API}/spins/request, demo mode just confirms.
+  var reqBusy = false;
+  $('moreSpins').addEventListener('click', function () {
+    if (reqBusy || !cfg) return;
+    reqBusy = true;
+    var btn = $('moreSpins'), lab = $('moreSpinsLabel');
+    btn.disabled = true;
+    lab.textContent = 'Sending request...';
+    var call = API ? api('/spins/request', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' }) : Promise.resolve({});
+    call.then(function (res) {
+      if (res && res.spinsLeft != null) { cfg.user.spinsLeft = Number(res.spinsLeft); renderSpins(); }
+      lab.textContent = 'Request sent';
+      toast((res && res.message) || 'Request sent. You will get more spins once it is approved.');
+      setTimeout(function () { reqBusy = false; btn.disabled = false; lab.textContent = 'Request more spins'; }, 60000);
+    }).catch(function (e) {
+      reqBusy = false;
+      btn.disabled = false;
+      lab.textContent = 'Request more spins';
+      toast(e.message || 'Something went wrong. Please try again.');
+    });
+  });
   $('soundBtn').addEventListener('click', function () {
     soundOn = !soundOn;
     try { localStorage.setItem('wp_sound', soundOn ? '1' : '0'); } catch (e) { /* storage blocked */ }
