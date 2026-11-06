@@ -278,6 +278,7 @@
         <div class="font-extrabold text-base tracking-tight uppercase truncate leading-tight">Winprizez Support</div>
         <div class="text-xs text-slate-500 leading-tight" id="chatStatus">online</div>
       </div>
+      <button id="chatMore" aria-label="More ways to contact us" class="w-9 h-9 shrink-0 rounded-full bg-slate-50 border border-slate-200/80 text-slate-600 flex items-center justify-center active:scale-95"><span class="material-symbols-outlined text-xl">more_vert</span></button>
     </div>
   </header>
   <div class="flex-1 overflow-y-auto px-3 py-3 flex flex-col gap-1.5 select-text" id="chatMsgs" style="background-image: radial-gradient(rgba(0,0,0,0.045) 1.2px, transparent 1.2px); background-size: 20px 20px;"></div>
@@ -287,6 +288,30 @@
       <textarea id="chatInput" rows="1" placeholder="Message" class="select-text w-full text-base leading-snug outline-none resize-none bg-transparent block" style="max-height:112px"></textarea>
     </div>
     <button id="chatSend" aria-label="Send" class="w-11 h-11 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/30 flex items-center justify-center shrink-0 active:scale-95 transition"><span class="material-symbols-outlined">send</span></button>
+  </div>
+</div>
+
+<div class="fixed inset-0 z-[59] bg-slate-950/50 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none" id="chatSheetBackdrop"></div>
+<div class="fixed left-0 right-0 bottom-0 z-[59] bg-white rounded-t-3xl shadow-2xl translate-y-full transition-transform duration-300 pb-safe" id="chatSheet" role="dialog" aria-label="Other ways to contact support" aria-hidden="true">
+  <div class="pt-3 flex justify-center"><div class="w-10 h-1.5 rounded-full bg-slate-200"></div></div>
+  <div class="px-5 pt-3 pb-3 flex items-start justify-between gap-3">
+    <div>
+      <h3 class="text-lg font-black tracking-tight">Contact us another way</h3>
+      <p class="text-xs text-slate-500 mt-0.5">Chat with support on the app you already use.</p>
+    </div>
+    <button id="chatSheetClose" aria-label="Close" class="w-8 h-8 shrink-0 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-95"><span class="material-symbols-outlined text-lg">close</span></button>
+  </div>
+  <div class="px-4 pb-5 flex flex-col gap-2">
+    <button class="w-full flex items-center gap-3 p-3 rounded-2xl bg-slate-50 active:scale-[0.99] transition text-left" id="viaWhatsapp">
+      <span class="w-11 h-11 rounded-full flex items-center justify-center text-white shrink-0" style="background:#25D366"><span class="material-symbols-outlined text-2xl">chat</span></span>
+      <span class="flex-1"><span class="block text-sm font-extrabold">Via WhatsApp</span><span class="block text-xs text-slate-500">Chat with us on WhatsApp</span></span>
+      <span class="material-symbols-outlined text-slate-400">open_in_new</span>
+    </button>
+    <button class="w-full flex items-center gap-3 p-3 rounded-2xl bg-slate-50 active:scale-[0.99] transition text-left" id="viaTelegram">
+      <span class="w-11 h-11 rounded-full flex items-center justify-center text-white shrink-0" style="background:#229ED9"><span class="material-symbols-outlined text-2xl">send</span></span>
+      <span class="flex-1"><span class="block text-sm font-extrabold">Via Telegram</span><span class="block text-xs text-slate-500">Chat with us on Telegram</span></span>
+      <span class="material-symbols-outlined text-slate-400">open_in_new</span>
+    </button>
   </div>
 </div>
 
@@ -313,6 +338,8 @@
     title: 'Winprizez',
     currency: 'USD',
     boosts: [1, 2, 5, 10],
+    whatsapp: '', // support WhatsApp number with country code, digits only, e.g. '2348012345678'
+    telegram: '', // support Telegram username, e.g. 'winprizez_support'
     user: { name: 'Guest', balance: 1000, spinsLeft: 2 },
     prizes: [
       { id: 'p3', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 200, weight: 6 },
@@ -1115,7 +1142,7 @@
   $('menuBtn').addEventListener('click', openMenu);
   $('menuClose').addEventListener('click', closeMenu);
   $('menuBackdrop').addEventListener('click', closeMenu);
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeMenu(); closeActivation(); closeCurSheet(); closeChat(); } });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeMenu(); closeActivation(); closeCurSheet(); closeChatSheet(); closeChat(); } });
 
   $('curBtn').addEventListener('click', openCurSheet);
   $('curBtn2').addEventListener('click', openCurSheet);
@@ -1233,6 +1260,7 @@
   function closeChat(fromPop) {
     if (!chatOpen) return;
     chatOpen = false;
+    closeChatSheet();
     clearInterval(chatTimer);
     $('chatInput').blur();
     $('chatPage').classList.add('translate-x-full');
@@ -1279,6 +1307,39 @@
   });
   $('chatChips').addEventListener('click', function (e) { var b = e.target.closest('.chat-chip'); if (b) sendChat(b.textContent); });
   $('chatBack').addEventListener('click', function () { closeChat(); });
+
+  // 3-dot menu in the chat header: other ways to reach support.
+  function openChatSheet() {
+    $('chatInput').blur();
+    $('chatSheet').classList.remove('translate-y-full');
+    $('chatSheet').setAttribute('aria-hidden', 'false');
+    $('chatSheetBackdrop').classList.remove('opacity-0', 'pointer-events-none');
+  }
+  function closeChatSheet() {
+    $('chatSheet').classList.add('translate-y-full');
+    $('chatSheet').setAttribute('aria-hidden', 'true');
+    $('chatSheetBackdrop').classList.add('opacity-0', 'pointer-events-none');
+  }
+  function viaLink(kind) {
+    var msg = $('chatInput').value.trim() || 'Hi Winprizez Support, I need help.';
+    if (kind === 'whatsapp') {
+      var num = String((cfg && cfg.whatsapp) || '').replace(/\D/g, '');
+      return num ? 'https://wa.me/' + num + '?text=' + encodeURIComponent(msg) : '';
+    }
+    var name = String((cfg && cfg.telegram) || '').trim().replace(/^https?:\/\/t\.me\//i, '').replace(/^@/, '');
+    return name ? 'https://t.me/' + encodeURIComponent(name) : '';
+  }
+  function via(kind) {
+    var url = viaLink(kind);
+    closeChatSheet();
+    if (!url) { toast((kind === 'whatsapp' ? 'WhatsApp' : 'Telegram') + ' contact is not set up yet.'); return; }
+    window.open(url, '_blank', 'noopener');
+  }
+  $('chatMore').addEventListener('click', openChatSheet);
+  $('chatSheetClose').addEventListener('click', closeChatSheet);
+  $('chatSheetBackdrop').addEventListener('click', closeChatSheet);
+  $('viaWhatsapp').addEventListener('click', function () { via('whatsapp'); });
+  $('viaTelegram').addEventListener('click', function () { via('telegram'); });
 
   // Every Contact Support button opens the chat, with a ready-to-send first message where it makes sense.
   $('winSupport').addEventListener('click', function () { closeWin(); openChat(winDraft); });
