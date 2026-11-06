@@ -68,18 +68,14 @@
     </div>
 
     <div class="w-full flex flex-col items-center gap-3 mt-4">
-      <div class="flex items-center justify-between p-1 bg-white border border-slate-200 rounded-full w-full max-w-xs">
-        <span class="text-xs font-bold text-slate-400 pl-3 uppercase tracking-wider">Boost</span>
-        <div class="flex items-center gap-1" id="boostBtns"></div>
-      </div>
       <div class="w-full grid grid-cols-2 gap-2">
         <div class="bg-white border border-slate-200/90 rounded-xl p-2.5 flex items-center gap-3">
           <div class="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-            <span class="material-symbols-outlined text-xl">payments</span>
+            <span class="material-symbols-outlined text-xl">casino</span>
           </div>
           <div class="min-w-0">
-            <div class="mono text-xs font-bold truncate" id="costCard">0</div>
-            <div class="text-[11px] text-slate-500">Cost per spin</div>
+            <div class="mono text-xs font-bold truncate" id="spinsCard">0</div>
+            <div class="text-[11px] text-slate-500">Spins left today</div>
           </div>
         </div>
         <div class="bg-white border border-slate-200/90 rounded-xl p-2.5 flex items-center gap-3">
@@ -122,9 +118,6 @@
 <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none" id="winBackdrop">
   <div class="absolute inset-0 pointer-events-none overflow-hidden" id="confetti"></div>
   <div class="relative w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center scale-90 transition-transform duration-300" id="winCard">
-    <button aria-label="Close" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 active:scale-95" id="winClose">
-      <span class="material-symbols-outlined text-lg">close</span>
-    </button>
     <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 text-white flex items-center justify-center shadow-lg shadow-amber-500/30 ring-4 ring-amber-100 mb-3 mt-1" id="winBadge">
       <span class="material-symbols-outlined text-3xl" id="winBadgeIcon">trophy</span>
     </div>
@@ -171,9 +164,7 @@
   var DEMO_CONFIG = {
     title: 'Winprizez',
     currency: '',
-    spinPrice: 100,
-    boosts: [1, 2, 5, 10],
-    user: { name: 'Guest', balance: 5000 },
+    user: { name: 'Guest', balance: 1000, spinsLeft: 2 },
     prizes: [
       { id: 'p1', name: 'Cash Prize', icon: 'payments', type: 'cash', amount: 1000, badge: 'Instant Payout', category: 'Direct', weight: 2 },
       { id: 'p2', name: 'Smartphone', icon: 'smartphone', type: 'item', worth: 600, badge: 'Tech Favorite', category: 'Tech', cashOut: 500, weight: 1 },
@@ -201,7 +192,7 @@
   };
   var ico = function (s) { return /^[a-z0-9_]+$/.test(s || '') ? s : 'redeem'; };
 
-  var cfg = null, rotation = 0, spinning = false, boost = 1, shown = 0, pending = null, wTab = 'live', wData = { list: [], standing: null };
+  var cfg = null, rotation = 0, spinning = false, shown = 0, pending = null, claimArm = null, claimTimer = null, wTab = 'live', wData = { list: [], standing: null };
 
   var AC = null, soundOn = true, bufs = {}, spinSrc = null;
   // Real recorded sounds, kept in the sounds folder next to index.html. If a file is missing or does not load, a built-in sound is used instead.
@@ -349,10 +340,10 @@
     $('walletBalance').textContent = b;
   }
 
-  function renderCost() {
-    var c = fmt(cfg.spinPrice * boost);
-    $('spinSub').textContent = c;
-    $('costCard').textContent = c;
+  function renderSpins() {
+    var n = Math.max(0, Number(cfg.user.spinsLeft) || 0);
+    $('spinSub').textContent = n + (n === 1 ? ' spin left' : ' spins left');
+    $('spinsCard').textContent = n;
   }
 
   function buildWheel() {
@@ -375,32 +366,16 @@
     $('wheelLabels').innerHTML = labels;
   }
 
-  function buildBoosts() {
-    $('boostBtns').innerHTML = cfg.boosts.map(function (m) {
-      return '<button class="boost-btn px-3.5 py-1.5 rounded-full text-xs font-bold transition" data-mult="' + Number(m) + '">' + Number(m) + 'x</button>';
-    }).join('');
-    paintBoosts();
-    $('boostBtns').addEventListener('click', function (e) {
-      var btn = e.target.closest('.boost-btn');
-      if (!btn || spinning) return;
-      boost = parseInt(btn.dataset.mult, 10) || 1;
-      paintBoosts();
-      renderCost();
-    });
-  }
-
-  function paintBoosts() {
-    document.querySelectorAll('.boost-btn').forEach(function (b) {
-      var on = parseInt(b.dataset.mult, 10) === boost;
-      b.className = 'boost-btn px-3.5 py-1.5 rounded-full text-xs transition ' +
-        (on ? 'bg-blue-600 text-white font-bold' : 'text-slate-600 font-semibold');
-    });
-  }
-
   function oddsOf(p) {
     if (p.odds) return Number(p.odds);
     var t = cfg.prizes.reduce(function (s, x) { return s + (x.weight || 0); }, 0);
     return p.weight && t ? Math.round(t / p.weight) : 0;
+  }
+
+  // What it costs the balance to claim a prize: claimCost if the admin set one, else the prize value.
+  function claimCost(p) {
+    if (p.claimCost != null) return Number(p.claimCost) || 0;
+    return p.type === 'cash' ? (Number(p.amount) || 0) : (Number(p.worth != null ? p.worth : p.cashOut) || 0);
   }
 
   // Each prize can carry: image (URL), category, badge, worth, cashOut, note, odds. All optional.
@@ -418,7 +393,9 @@
         (o ? '<span class="mono text-[11px] text-slate-500 shrink-0">1 in ' + o.toLocaleString() + '</span>' : '') + '</div>' +
         '<div class="text-sm font-extrabold leading-tight mt-1 line-clamp-2">' + esc(p.name) + '</div>' +
         '<div class="flex items-end justify-between gap-2 mt-1"><span class="mono text-sm font-extrabold ' + (p.type === 'cash' ? 'text-emerald-600' : 'text-blue-700') + '">' + esc(v) + '</span>' +
-        (note ? '<span class="text-[10px] text-slate-500 text-right leading-tight">' + esc(note) + '</span>' : '') + '</div></div></div>';
+        (note ? '<span class="text-[10px] text-slate-500 text-right leading-tight">' + esc(note) + '</span>' : '') + '</div>' +
+        '<button class="claim-btn mt-2 w-full py-2 rounded-xl text-xs font-extrabold active:scale-[0.98] transition ' + (cfg.user.balance >= claimCost(p) ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400') + '" data-id="' + esc(p.id) + '">' +
+        (claimArm === p.id ? 'Tap again to confirm' : 'Claim') + '</button></div></div>';
     });
     $('prizeList').innerHTML = rows.join('') || '<p class="text-sm text-slate-500">No prizes yet.</p>';
   }
@@ -526,6 +503,7 @@
       b.classList.toggle('text-slate-400', !on);
     });
     if (v === 'winners') loadWinners();
+    if (v === 'prizes') buildPrizeList();
   }
 
   function confetti() {
@@ -624,7 +602,7 @@
       return api('/spin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ boost: boost })
+        body: '{}'
       });
     }
     // Demo only. Never trust the browser to pick a result on the live site.
@@ -634,20 +612,19 @@
       r -= (cfg.prizes[i].weight || 1);
       if (r < 0) { pick = cfg.prizes[i]; break; }
     }
-    var bal = cfg.user.balance - cfg.spinPrice * boost + creditOf(pick);
-    return Promise.resolve({ prizeId: pick.id, balance: bal });
+    return Promise.resolve({ prizeId: pick.id, balance: cfg.user.balance + creditOf(pick), spinsLeft: cfg.user.spinsLeft });
   }
 
   function spin() {
     if (spinning || !cfg) return;
-    if (cfg.user.balance < cfg.spinPrice * boost) {
-      toast('Your balance is too low for this spin. Please top up your wallet.');
+    if ((Number(cfg.user.spinsLeft) || 0) < 1) {
+      toast('You have no spins left today. Come back tomorrow for more.');
       return;
     }
     audio();
-    var before = cfg.user.balance;
-    shown = before - cfg.spinPrice * boost;
-    renderBalance();
+    var spinsBefore = cfg.user.spinsLeft;
+    cfg.user.spinsLeft = spinsBefore - 1;
+    renderSpins();
     spinning = true;
     setBusy(true);
     requestSpin().then(function (res) {
@@ -669,6 +646,7 @@
         sfx.stopSpin();
         var p = cfg.prizes[idx];
         cfg.user.balance = Number(res.balance);
+        if (res.spinsLeft != null) { cfg.user.spinsLeft = Number(res.spinsLeft); renderSpins(); }
         var gain = cfg.user.balance - shown;
         if (gain > 0) pending = { amount: gain, to: cfg.user.balance };
         else { shown = cfg.user.balance; renderBalance(); }
@@ -679,8 +657,8 @@
       }, dur + 180);
     }).catch(function (e) {
       sfx.stopSpin();
-      shown = before;
-      renderBalance();
+      cfg.user.spinsLeft = spinsBefore;
+      renderSpins();
       spinning = false;
       setBusy(false);
       toast(e.message || 'Something went wrong. Please try again.');
@@ -689,25 +667,54 @@
 
   function init(c) {
     cfg = c;
-    if (!cfg.boosts || !cfg.boosts.length) cfg.boosts = [1];
-    if (!cfg.user) cfg.user = { name: 'Guest', balance: 0 };
+    if (!cfg.user) cfg.user = { name: 'Guest', balance: 0, spinsLeft: 0 };
     $('appTitle').textContent = cfg.title || 'Winprizez';
     document.title = cfg.title || 'Winprizez';
     $('avatar').textContent = (cfg.user.name || 'G').charAt(0).toUpperCase();
     buildWheel();
-    buildBoosts();
     buildPrizeList();
     shown = cfg.user.balance;
     if (!API) wData = demoWinners();
     renderBalance();
-    renderCost();
+    renderSpins();
     $('spinBtn').disabled = false;
     showView('spin');
   }
 
   $('spinBtn').addEventListener('click', spin);
   $('winDone').addEventListener('click', function () { closeWin(); });
-  $('winClose').addEventListener('click', function () { closeWin(); });
+  function claimPrize(p) {
+    if (API) return api('/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prizeId: p.id }) });
+    return Promise.resolve({ balance: cfg.user.balance - claimCost(p) });
+  }
+  $('prizeList').addEventListener('click', function (e) {
+    var b = e.target.closest('.claim-btn');
+    if (!b) return;
+    var p = cfg.prizes.filter(function (x) { return x.id === b.dataset.id; })[0];
+    if (!p) return;
+    var cost = claimCost(p), bal = cfg.user.balance;
+    if (bal < cost) { toast('You need ' + fmt(cost - bal) + ' more to claim this prize.'); return; }
+    if (claimArm !== p.id) {
+      claimArm = p.id;
+      clearTimeout(claimTimer);
+      claimTimer = setTimeout(function () { claimArm = null; buildPrizeList(); }, 3000);
+      buildPrizeList();
+      return;
+    }
+    claimArm = null;
+    clearTimeout(claimTimer);
+    b.disabled = true;
+    claimPrize(p).then(function (res) {
+      cfg.user.balance = Number(res.balance);
+      shown = cfg.user.balance;
+      renderBalance();
+      buildPrizeList();
+      toast('Your claim has been received.');
+    }).catch(function (err) {
+      b.disabled = false;
+      toast(err.message || 'Something went wrong. Please try again.');
+    });
+  });
   $('winAgain').addEventListener('click', function () { closeWin(spin); });
   $('winBackdrop').addEventListener('click', function (e) { if (e.target === $('winBackdrop')) closeWin(); });
   $('winnerList').addEventListener('click', function (e) {
