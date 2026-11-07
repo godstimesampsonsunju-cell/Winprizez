@@ -3,12 +3,47 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#2563eb" id="themeColor">
+<meta name="description" content="Spin the wheel and win cash, cars and more prizes.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Winprizez">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Winprizez">
+<meta property="og:description" content="Spin the wheel and win cash, cars and more prizes.">
+<meta property="og:image" content="https://winprizez.pages.dev/icon-512.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png">
+<link rel="shortcut icon" href="favicon.ico">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <title>Winprizez</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all';this.dataset.l=1" onerror="this.dataset.l=1">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet" media="print" onload="this.media='all';this.dataset.l=1" onerror="this.dataset.l=1">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=block" rel="stylesheet"></noscript>
 <style>
+  html:not(.ready) { background: #2563eb; }
+  .no-icons .material-symbols-outlined { visibility: hidden; }
+  /* Splash screen: plain CSS only, so it looks right even before Tailwind and the fonts have loaded. */
+  #splash { position: fixed; inset: 0; z-index: 2147483000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 24px; text-align: center; color: #fff; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; background: radial-gradient(120% 80% at 50% 28%, #4f46e5 0%, #2f3fe0 45%, #1d2bd6 100%); transition: opacity 0.5s ease, visibility 0.5s; }
+  #splash.sp-hide { opacity: 0; visibility: hidden; pointer-events: none; }
+  #splash .sp-logo { width: 128px; height: 128px; border-radius: 32px; overflow: hidden; box-shadow: 0 20px 56px rgba(10, 8, 80, 0.5), 0 0 0 4px rgba(255, 255, 255, 0.28); animation: spPop 0.7s cubic-bezier(0.16, 1, 0.3, 1) both, spFloat 2.8s ease-in-out 0.7s infinite; }
+  #splash .sp-logo img { width: 100%; height: 100%; display: block; }
+  #splash .sp-name { font-weight: 800; font-size: 22px; letter-spacing: 0.18em; text-shadow: 0 2px 10px rgba(10, 8, 80, 0.35); animation: spFade 0.6s ease 0.25s both; }
+  #splash .sp-bar { width: 150px; height: 5px; border-radius: 9px; background: rgba(255, 255, 255, 0.28); overflow: hidden; animation: spFade 0.6s ease 0.35s both; }
+  #splash .sp-bar span { display: block; width: 42%; height: 100%; border-radius: 9px; background: #fff; animation: spSlide 1.1s ease-in-out infinite; }
+  #splash .sp-err { display: none; flex-direction: column; align-items: center; gap: 12px; max-width: 280px; font-size: 14px; line-height: 1.45; font-weight: 600; }
+  #splash.sp-fail .sp-err { display: flex; }
+  #splash.sp-fail .sp-bar { display: none; }
+  #splash .sp-err button { border: 0; border-radius: 999px; padding: 12px 26px; font-size: 14px; font-weight: 800; color: #2f3fe0; background: #fff; box-shadow: 0 8px 24px rgba(10, 8, 80, 0.35); }
+  @keyframes spPop { from { opacity: 0; transform: scale(0.7); } to { opacity: 1; transform: scale(1); } }
+  @keyframes spFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+  @keyframes spFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes spSlide { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
+  /* Hold the page entrance animations until the splash has gone, so they are actually seen. */
+  html:not(.ready) body > :not(#splash), html:not(.ready) body > :not(#splash) *, html:not(.ready) body > :not(#splash) *::before, html:not(.ready) body > :not(#splash) *::after { animation-play-state: paused !important; }
   html, body { margin: 0; height: 100%; overflow: hidden; background: #faf8ff; touch-action: pan-y; }
   body { font-family: 'Plus Jakarta Sans', sans-serif; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
   .pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -57,13 +92,26 @@
 </style>
 </head>
 <body class="text-[#131b2e] antialiased select-none">
+<div id="splash" role="status" aria-live="polite">
+  <div class="sp-logo"><img src="data:image/webp;base64,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" alt="Winprizez" width="128" height="128"></div>
+  <div class="sp-name">WINPRIZEZ</div>
+  <div class="sp-bar"><span></span></div>
+  <div class="sp-err" id="splashErr"><span id="splashErrText">We could not load the game. Please check your connection and try again.</span><button type="button" onclick="location.reload()">Try again</button></div>
+</div>
+<script>
+  // Safety net: if the app has not started after 12 seconds, tell the user instead of leaving them on the splash.
+  setTimeout(function () {
+    var sp = document.getElementById('splash');
+    if (sp && !window.__booted) { document.getElementById('splashErrText').textContent = 'This is taking longer than usual. Please check your connection and try again.'; sp.classList.add('sp-fail'); }
+  }, 12000);
+</script>
+<!-- Tailwind loads here, after the splash is already on screen, so a slow connection shows the splash instead of a blank page. -->
+<script src="https://cdn.tailwindcss.com"></script>
 
 <header class="fixed top-0 w-full z-40 pt-safe bg-white/95 backdrop-blur-md border-b border-[#eaedff]">
   <div class="h-16 px-3 flex items-center justify-between gap-2">
     <div class="flex items-center gap-2 min-w-0">
-      <div class="w-9 h-9 shrink-0 rounded-xl bg-blue-600 flex items-center justify-center text-white">
-        <span class="material-symbols-outlined text-xl">casino</span>
-      </div>
+      <img src="img/logo.webp" alt="" width="36" height="36" class="w-9 h-9 shrink-0 rounded-xl shadow-sm" draggable="false">
       <span class="font-extrabold text-base tracking-tight uppercase truncate" id="appTitle">Winprizez</span>
     </div>
     <div class="flex items-center gap-1.5 shrink-0">
@@ -462,7 +510,15 @@
   var synth = {
     win: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, i * 0.11, 0.35, 'triangle', 0.2); }); tone(1319, 0.5, 0.5, 'triangle', 0.18); },
     lose: function () { tone(330, 0, 0.25, 'triangle', 0.16); tone(262, 0.2, 0.25, 'triangle', 0.16); tone(196, 0.4, 0.5, 'triangle', 0.16); },
-    coin: function (i) { var f = 1200 + Math.min(i, 10) * 60; tone(f, 0, 0.12, 'sine', 0.12); tone(f * 1.5, 0.05, 0.14, 'sine', 0.08); }
+    coin: function (i) { var f = 1200 + Math.min(i, 10) * 60; tone(f, 0, 0.12, 'sine', 0.12); tone(f * 1.5, 0.05, 0.14, 'sine', 0.08); },
+    // Bottom bar: a soft click plus a bright rising chime. Each tab has its own note, so moving across the bar plays a little scale.
+    nav: function (i) {
+      var f = [523, 659, 784, 988][i] || 660;
+      click();
+      tone(f, 0, 0.12, 'sine', 0.16);
+      tone(f * 1.5, 0.06, 0.18, 'triangle', 0.11);
+      tone(f * 2, 0.12, 0.24, 'sine', 0.07);
+    }
   };
   var sfx = {
     spin: function (step) { sfx.stopSpin(); spinSrc = play('spin'); if (!spinSrc) tickLoop(step); },
@@ -475,7 +531,8 @@
     },
     win: function () { if (!play('win')) synth.win(); },
     lose: function () { if (!play('lose')) synth.lose(); },
-    coin: function (i) { if (!play('coin', 1 + Math.min(i, 10) * 0.03, 0.8)) synth.coin(i); }
+    coin: function (i) { if (!play('coin', 1 + Math.min(i, 10) * 0.03, 0.8)) synth.coin(i); },
+    nav: function (i) { synth.nav(i); }
   };
 
   // Currency. Prices and balances are stored in the base currency (cfg.currency, USD by default).
@@ -494,6 +551,17 @@
       return SYM[cur] + v.toLocaleString('en-US', { maximumFractionDigits: whole ? 0 : 2 });
     }
   }
+  // Winners are shown in the currency they won or claimed in, never in the viewer's selected currency.
+  // Live mode: every winner from GET /winners carries { amount, currency } with currency USD, EUR or GBP.
+  function wcur(w) { var c = String((w && (w.currency || w.cur)) || '').toUpperCase(); return CURS.indexOf(c) >= 0 ? c : base; }
+  function fmtIn(n, code) {
+    try { return new Intl.NumberFormat('en-US', { style: 'currency', currency: code, minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(n) || 0); }
+    catch (e) { return SYM[code] + (Number(n) || 0).toLocaleString('en-US', { maximumFractionDigits: 2 }); }
+  }
+  // Approximate values, used only to rank winners who won in different currencies. They are never shown.
+  var ORD = { USD: 1, EUR: 1.16, GBP: 1.34 };
+  function rankVal(w) { return (Number(w.amount) || 0) * (ORD[wcur(w)] || 1); }
+
   function fmtNum(n) { return conv(n).toLocaleString('en-US', { maximumFractionDigits: 2 }); }
 
   function savedRates() {
@@ -760,11 +828,11 @@
   function demoWinners() {
     var n = Date.now(), m = 60000, h = 3600000;
     return { list: [
-      { name: '@Alex_C', prize: 'Cash Prize', amount: 1000, tag: 'Direct', time: n - 2 * m, tx: '8497', status: 'Claimed' },
-      { name: '@Sarah_K', prize: 'iPhone 18 Pro Max', amount: 1200, tag: 'Tech', time: n - 18 * m, tx: '8492', status: 'Claimed' },
-      { name: '@David_M', prize: 'Cash Prize', amount: 500, tag: 'Direct', time: n - 45 * m, tx: '8488', status: 'Claimed' },
-      { name: '@Elena_R', prize: 'Model Y', amount: 24000, tag: 'Cars', time: n - 3 * h, tx: '8471', status: 'Claimed' },
-      { name: '@Sarah_K', prize: 'Cash Prize', amount: 200, tag: 'Direct', time: n - 5 * h, tx: '8450', status: 'Claimed' }
+      { name: '@Alex_C', prize: 'Cash Prize', amount: 1000, currency: 'USD', tag: 'Direct', time: n - 2 * m, tx: '8497', status: 'Claimed' },
+      { name: '@Sarah_K', prize: 'iPhone 18 Pro Max', amount: 900, currency: 'GBP', tag: 'Tech', time: n - 18 * m, tx: '8492', status: 'Claimed' },
+      { name: '@David_M', prize: 'Cash Prize', amount: 500, currency: 'EUR', tag: 'Direct', time: n - 45 * m, tx: '8488', status: 'Claimed' },
+      { name: '@Elena_R', prize: 'Model Y', amount: 24000, currency: 'EUR', tag: 'Cars', time: n - 3 * h, tx: '8471', status: 'Claimed' },
+      { name: '@Sarah_K', prize: 'Cash Prize', amount: 150, currency: 'GBP', tag: 'Direct', time: n - 5 * h, tx: '8450', status: 'Claimed' }
     ], standing: { rank: 142, won: 500, spins: 12, note: '' } };
   }
 
@@ -783,7 +851,7 @@
   }
 
   function winRow(w, i) {
-    var amt = Number(w.amount) > 0 ? fmt(w.amount) : '';
+    var amt = Number(w.amount) > 0 ? fmtIn(w.amount, wcur(w)) : '';
     return '<div class="bg-white border border-slate-200/80 rounded-2xl p-3 flex items-center gap-3">' + avatarOf(w.name, 44, i) +
       '<div class="min-w-0 flex-1"><div class="flex items-center gap-2"><span class="text-xs font-bold truncate">' + esc(w.name) + '</span>' +
       (w.tag ? '<span class="px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 text-[9px] font-extrabold uppercase shrink-0">' + esc(w.tag) + '</span>' : '') + '</div>' +
@@ -795,7 +863,7 @@
 
   function podium(top) {
     function card(w, rank, i) {
-      var first = rank === 1, amt = Number(w.amount) > 0 ? fmt(w.amount) : '';
+      var first = rank === 1, amt = Number(w.amount) > 0 ? fmtIn(w.amount, wcur(w)) : '';
       return '<div class="flex-1 min-w-0 bg-white rounded-2xl p-2.5 flex flex-col items-center text-center ' + (first ? 'border-2 border-amber-300 -mt-3 pb-3 shadow-md' : 'border border-slate-200/80') + '">' +
         '<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full mb-1.5 ' + (first ? 'bg-amber-300 text-amber-900' : 'bg-slate-100 text-slate-600') + '">' + (first ? '1ST' : rank) + '</span>' +
         avatarOf(w.name, first ? 56 : 44, i) +
@@ -815,7 +883,7 @@
       return '<button class="wtab flex-1 py-2 rounded-full text-xs font-bold ' + (wTab === t[0] ? 'bg-blue-600 text-white' : 'text-slate-600') + '" data-tab="' + t[0] + '">' + t[1] + '</button>';
     }).join('') + '</div>';
     if (!L.length) { el.innerHTML = h + '<p class="text-sm text-slate-500">Winners will show up here.</p>'; return; }
-    var byAmt = L.slice().sort(function (a, b) { return (b.amount || 0) - (a.amount || 0); });
+    var byAmt = L.slice().sort(function (a, b) { return rankVal(b) - rankVal(a); });
     var lab = '<div class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">';
     if (wTab === 'live') {
       var s = wData.standing;
@@ -831,11 +899,14 @@
       h += '<div class="flex flex-col gap-2">' + byAmt.map(winRow).join('') + '</div>';
     } else {
       var tot = {};
-      L.forEach(function (w) { var t = tot[w.name] || (tot[w.name] = { name: w.name, total: 0, n: 0 }); t.total += Number(w.amount) || 0; t.n++; });
+      L.forEach(function (w) {
+        var t = tot[w.name] || (tot[w.name] = { name: w.name, total: 0, n: 0, parts: {} }), c = wcur(w);
+        t.total += rankVal(w); t.n++; t.parts[c] = (t.parts[c] || 0) + (Number(w.amount) || 0);
+      });
       h += '<div class="flex flex-col gap-2">' + Object.keys(tot).map(function (k) { return tot[k]; }).sort(function (a, b) { return b.total - a.total; }).map(function (t, i) {
         return '<div class="bg-white border border-slate-200/80 rounded-2xl p-3 flex items-center gap-3"><span class="mono w-5 text-center text-xs font-extrabold text-slate-400">' + (i + 1) + '</span>' +
           avatarOf(t.name, 40, i) + '<div class="min-w-0 flex-1"><div class="text-sm font-bold truncate">' + esc(t.name) + '</div><div class="text-[11px] text-slate-500">' + t.n + (t.n === 1 ? ' win' : ' wins') + '</div></div>' +
-          '<div class="mono text-sm font-extrabold text-blue-700 shrink-0">' + esc(fmt(t.total)) + '</div></div>';
+          '<div class="mono text-sm font-extrabold text-blue-700 shrink-0 text-right">' + esc(Object.keys(t.parts).map(function (c) { return fmtIn(t.parts[c], c); }).join(' + ')) + '</div></div>';
       }).join('') + '</div>';
     }
     el.innerHTML = h;
@@ -1430,17 +1501,57 @@
   paintSound();
   $('nav').addEventListener('click', function (e) {
     var b = e.target.closest('.nav-btn');
-    if (b) showView(b.dataset.view);
+    if (b) { sfx.nav(['spin', 'prizes', 'winners', 'wallet'].indexOf(b.dataset.view)); showView(b.dataset.view); }
   });
 
   loadSounds();
   var start = API ? api('/config') : Promise.resolve(DEMO_CONFIG);
+  // Reveal the app only when the fonts, the game data and the wheel pictures are ready, so users never see a half-built screen.
+  var bootT0 = Date.now();
+  function fontsReady() {
+    var links = [].slice.call(document.querySelectorAll('link[href*="fonts.googleapis"][media]'));
+    var sheets = Promise.all(links.map(function (l) {
+      return new Promise(function (ok) { if (l.dataset.l) return ok(); l.addEventListener('load', ok); l.addEventListener('error', ok); });
+    }));
+    return sheets.then(function () {
+      if (!document.fonts || !document.fonts.load) return;
+      return Promise.all([
+        document.fonts.load('24px "Material Symbols Outlined"').then(function (f) {
+          // If the icon font could not be loaded, hide the icons instead of showing their names as text.
+          if (!f || !f.length) document.documentElement.classList.add('no-icons');
+        }),
+        document.fonts.load('600 14px "Plus Jakarta Sans"'),
+        document.fonts.load('700 14px "Space Grotesk"')
+      ]);
+    }).catch(function () { /* show the app anyway */ });
+  }
+  function wheelPicturesReady() {
+    var imgs = [].slice.call(document.querySelectorAll('#wheelLabels img, header img'));
+    return Promise.all(imgs.map(function (im) { return im.decode ? im.decode().catch(function () { /* ignore */ }) : Promise.resolve(); }));
+  }
+  function revealApp() {
+    window.__booted = true;
+    var sp = document.getElementById('splash');
+    document.documentElement.classList.add('ready');
+    var tc = document.getElementById('themeColor');
+    if (tc) tc.setAttribute('content', '#ffffff');
+    if (sp) { sp.classList.add('sp-hide'); setTimeout(function () { if (sp.parentNode) sp.parentNode.removeChild(sp); }, 700); }
+  }
   start.then(function (c) {
     if (!c || !c.prizes || c.prizes.length < 2) throw new Error('bad config');
     init(c);
+    var ready = Promise.all([fontsReady(), wheelPicturesReady()]);
+    var limit = new Promise(function (ok) { setTimeout(ok, 7000); });
+    return Promise.race([ready, limit]);
+  }).then(function () {
+    var wait = Math.max(0, 900 - (Date.now() - bootT0));
+    setTimeout(revealApp, wait);
   }).catch(function () {
     $('view-spin').classList.add('hidden');
     $('loadError').classList.remove('hidden');
+    $('splashErrText').textContent = 'We could not load the game. Please check your connection and try again.';
+    var sp = document.getElementById('splash');
+    if (sp) sp.classList.add('sp-fail');
   });
 })();
 </script>
