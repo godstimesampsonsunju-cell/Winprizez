@@ -119,7 +119,7 @@
         <button id="curBtn" aria-label="Change currency" class="mono flex items-center pl-2.5 pr-1 py-0.5 rounded-full bg-white border border-slate-200 text-sm font-extrabold text-blue-700 active:scale-95 transition">
           <span id="curSym">$</span><span class="material-symbols-outlined text-lg">expand_more</span>
         </button>
-        <span class="mono text-xs font-bold" id="balance">0</span>
+        <span class="mono text-sm font-extrabold text-slate-900" id="balance">0</span>
       </div>
       <button id="menuBtn" aria-label="Menu" class="w-9 h-9 shrink-0 rounded-full bg-slate-50 border border-slate-200/80 flex items-center justify-center text-slate-600 active:scale-95"><span class="material-symbols-outlined text-xl">more_vert</span></button>
     </div>
@@ -274,17 +274,37 @@
       </div>
     </div>
     <div class="w-full flex flex-col gap-2.5">
-      <button class="hidden w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-fuchsia-600 active:scale-[0.98] text-white font-extrabold text-sm shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-2" id="winSupport">
-        <span class="material-symbols-outlined text-xl">support_agent</span><span>Contact Support</span>
-      </button>
-      <button class="w-full py-3 rounded-xl bg-blue-50 hover:bg-blue-100 active:scale-[0.98] text-blue-700 font-extrabold text-sm transition" id="winDone">Done</button>
-      <button class="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-700 font-bold text-xs transition flex items-center justify-center gap-1.5" id="winAgain">
-        <span class="material-symbols-outlined text-base text-slate-500">replay</span><span>Spin Again</span>
+      <div class="hidden w-full grid grid-cols-2 gap-2.5" id="winActions">
+        <button class="py-3.5 rounded-xl bg-blue-50 hover:bg-blue-100 active:scale-[0.98] text-blue-700 font-extrabold text-sm transition flex items-center justify-center gap-1.5" id="winDetails">
+          <span class="material-symbols-outlined text-xl">info</span><span>Details</span>
+        </button>
+        <button class="py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-fuchsia-600 active:scale-[0.98] text-white font-extrabold text-sm shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-1.5" id="winSupport">
+          <span class="material-symbols-outlined text-xl">support_agent</span><span>Claim</span>
+        </button>
+      </div>
+      <button class="w-full py-3 rounded-xl bg-slate-100 hover:bg-slate-200 active:scale-[0.98] text-slate-800 font-extrabold text-sm transition flex items-center justify-center gap-1.5" id="winAgain">
+        <span class="material-symbols-outlined text-lg text-slate-500">replay</span><span>Spin Again</span>
       </button>
     </div>
   </div>
 </div>
 
+<div class="fixed inset-0 z-[58] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none" id="detBackdrop">
+  <div class="relative w-full max-w-sm bg-white rounded-3xl p-5 shadow-2xl flex flex-col scale-90 transition-transform duration-300 max-h-[88vh] overflow-y-auto" id="detCard">
+    <button id="detClose" aria-label="Close" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-95"><span class="material-symbols-outlined text-lg">close</span></button>
+    <h3 class="text-lg font-black tracking-tight mb-3 pr-10">Prize Details</h3>
+    <div class="w-full rounded-2xl bg-[#f8faff] border border-blue-100 h-40 flex items-center justify-center mb-3 overflow-hidden" id="detPic">
+      <img id="detImg" alt="" class="hidden w-full h-full object-contain p-3">
+      <span class="material-symbols-outlined text-6xl text-blue-600" id="detIcon">redeem</span>
+    </div>
+    <div class="text-xl font-black leading-tight" id="detName"></div>
+    <div class="flex flex-col divide-y divide-slate-100 mt-2" id="detRows"></div>
+    <p class="text-sm font-semibold text-slate-700 mt-3 hidden" id="detNote"></p>
+    <button class="w-full mt-4 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-fuchsia-600 active:scale-[0.98] text-white font-extrabold text-sm shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-2" id="detClaim">
+      <span class="material-symbols-outlined text-xl">support_agent</span><span>Claim</span>
+    </button>
+  </div>
+</div>
 <div class="fixed inset-0 z-[58] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none" id="actBackdrop">
   <div class="relative w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl flex flex-col items-center text-center scale-90 transition-transform duration-300" id="actCard">
     <button id="actClose" aria-label="Close" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 active:scale-95"><span class="material-symbols-outlined text-lg">close</span></button>
@@ -959,7 +979,8 @@
     $('winWon').textContent = none ? '' : 'You have won ' + (p.type === 'cash' ? fmt(gain > 0 ? gain : p.amount) : p.name);
     $('winWon').classList.toggle('hidden', none);
     winDraft = none ? '' : 'Hi, I won ' + (p.type === 'cash' ? fmt(gain > 0 ? gain : p.amount) : p.name) + ' and would like to claim my winning.';
-    $('winSupport').classList.toggle('hidden', none);
+    $('winActions').classList.toggle('hidden', none);
+    winCur = none ? null : { p: p, gain: gain, ref: 'WP-' + Date.now().toString(36).toUpperCase().slice(-7), at: Date.now() };
     $('winSub').textContent = none ? 'Better luck on the next spin.' : 'Kindly contact support and claim your winning.';
     $('winBadgeIcon').textContent = none ? 'sentiment_neutral' : 'trophy';
     $('winPrize').classList.toggle('hidden', none);
@@ -1138,7 +1159,6 @@
   }
 
   $('spinBtn').addEventListener('click', spin);
-  $('winDone').addEventListener('click', function () { closeWin(); });
   function claimPrize(p) {
     if (API) return api('/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prizeId: p.id }) });
     return Promise.resolve({ balance: cfg.user.balance - claimCost(p) });
@@ -1414,6 +1434,51 @@
 
   // Every Contact Support button opens the chat, with a ready-to-send first message where it makes sense.
   $('winSupport').addEventListener('click', function () { closeWin(); openChat(winDraft); });
+
+  // Prize details: opened from the win popup. Optional prize fields: modelNo (model or item number) and details (a short note).
+  var winCur = null;
+  function detRow(k, v) {
+    return '<div class="flex items-center justify-between gap-3 py-2.5"><span class="text-xs font-semibold text-slate-500">' + esc(k) + '</span><span class="mono text-sm font-extrabold text-right">' + esc(v) + '</span></div>';
+  }
+  function openDetails() {
+    if (!winCur) return;
+    var p = winCur.p, gain = winCur.gain, o = oddsOf(p), rows = '';
+    $('detName').textContent = p.name;
+    $('detImg').classList.toggle('hidden', !imgOf(p));
+    $('detIcon').classList.toggle('hidden', !!imgOf(p));
+    if (imgOf(p)) $('detImg').src = imgOf(p); else $('detIcon').textContent = ico(p.icon);
+    var note = p.details || '';
+    if (p.type === 'cash') {
+      // Money win: the info is just the claim message.
+      rows += detRow('Prize value', valueOf(p));
+      note = 'Kindly contact support and claim your money. Goodluck';
+    } else {
+      rows += detRow('Prize', p.name);
+      if (p.modelNo) rows += detRow('Model number', p.modelNo);
+      if (p.category) rows += detRow('Category', p.category);
+      if (p.badge) rows += detRow('Type', p.badge);
+      rows += detRow('Prize value', valueOf(p));
+      if (gain > 0) rows += detRow('Paid out as cash', fmt(gain));
+      if (o) rows += detRow('Odds', '1 in ' + o.toLocaleString());
+      rows += detRow('Reference no.', winCur.ref);
+      rows += detRow('Won on', new Date(winCur.at).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' }));
+    }
+    $('detRows').innerHTML = rows;
+    $('detNote').textContent = note;
+    $('detNote').classList.toggle('hidden', !note);
+    $('detBackdrop').classList.remove('opacity-0', 'pointer-events-none');
+    $('detCard').classList.remove('scale-90');
+    $('detCard').classList.add('animate-modal-pop');
+  }
+  function closeDetails() {
+    $('detBackdrop').classList.add('opacity-0', 'pointer-events-none');
+    $('detCard').classList.remove('animate-modal-pop');
+    $('detCard').classList.add('scale-90');
+  }
+  $('winDetails').addEventListener('click', openDetails);
+  $('detClose').addEventListener('click', closeDetails);
+  $('detBackdrop').addEventListener('click', function (e) { if (e.target === $('detBackdrop')) closeDetails(); });
+  $('detClaim').addEventListener('click', function () { closeDetails(); closeWin(); openChat(winDraft); });
   $('actSupport').addEventListener('click', function () { closeActivation(); openChat('Hi, I need an activation pin to get more spins.'); });
   $('menuSupport').addEventListener('click', function () { openChat(''); });
 
